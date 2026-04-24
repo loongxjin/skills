@@ -1,89 +1,89 @@
 ---
 name: backend-code-review
-description: 后端代码审核技能，基于九维度思维框架对后端代码进行系统性审查。当需要审核后端代码、审查 PR/MR、做代码质量评估、或排查后端代码潜在风险时使用。覆盖维度包括：代码质量、架构设计、数据库与存储、并发与分布式、可靠性工程、性能与可扩展性、安全防御、可观测性、工程实践。适用于 Go/Java/Python 等后端语言的代码审查场景。
+description: Backend code review skill based on a 9-dimension thinking framework. Use when reviewing backend code, conducting PR/MR reviews, assessing code quality, or identifying potential risks in backend systems. Covers code quality, architecture design, database and storage, concurrency and distributed systems, reliability engineering, performance and scalability, security, observability, and engineering practices. Applicable to Go, Java, Python, and other backend languages.
 ---
 
-# 后端代码审核
+# Backend Code Review
 
-基于后端工程师思维框架，系统性审查后端代码质量和潜在风险。
+Systematic code quality and risk assessment for backend systems based on a backend engineer thinking framework.
 
-## 审核流程
+## Review Process
 
-### 1. 确定审核范围
+### 1. Determine Review Scope
 
-识别变更涉及的代码文件、模块和层次，标记重点文件。
+Identify the code files, modules, and layers involved in the change. Mark critical files for focused review.
 
-### 2. 按维度逐项审查
+### 2. Dimension-by-Dimension Review
 
-按以下九个维度依次检查。每个维度的详细检查清单和反模式示例见 `references/` 目录下对应文件：
+Review each of the following nine dimensions sequentially. Detailed checklists and anti-pattern examples for each dimension are in the corresponding file under `references/`:
 
-| 维度 | 参考文件 | 核心关注点 |
-|------|---------|-----------|
-| 代码质量 | [code-quality.md](references/code-quality.md) | 命名、函数设计、魔法值、重复代码、日志 |
-| 架构设计 | [architecture.md](references/architecture.md) | 分层边界、接口抽象、配置分离、职责单一 |
-| 数据库与存储 | [database.md](references/database.md) | 索引、事务、N+1、数据增长、一致性 |
-| 并发与分布式 | [concurrency.md](references/concurrency.md) | 并发安全、幂等、消息队列、分布式认知 |
-| 可靠性工程 | [reliability.md](references/reliability.md) | 限流熔断降级、重试、超时、资源释放 |
-| 性能与可扩展性 | [performance.md](references/performance.md) | 缓存策略、批量操作、内存意识、长期运行 |
-| 安全防御 | [security.md](references/security.md) | 输入校验、注入防护、越权、敏感数据 |
-| 可观测性 | [observability.md](references/observability.md) | 日志规范、指标监控、链路追踪、告警 |
-| 工程实践 | [engineering.md](references/engineering.md) | 测试覆盖、兼容性、API 文档、变更安全 |
+| Dimension | Reference File | Core Focus |
+|-----------|---------------|------------|
+| Code Quality | [code-quality.md](references/code-quality.md) | Naming, function design, magic values, duplication, logging |
+| Architecture | [architecture.md](references/architecture.md) | Layer boundaries, interface abstraction, config separation, SRP |
+| Database & Storage | [database.md](references/database.md) | Indexing, transactions, N+1, data growth, consistency |
+| Concurrency & Distributed | [concurrency.md](references/concurrency.md) | Thread safety, idempotency, message queues, distributed awareness |
+| Reliability | [reliability.md](references/reliability.md) | Rate limiting, circuit breaker, retry, timeout, resource cleanup |
+| Performance & Scalability | [performance.md](references/performance.md) | Caching, batch operations, memory awareness, long-running concerns |
+| Security | [security.md](references/security.md) | Input validation, injection prevention, authorization, sensitive data |
+| Observability | [observability.md](references/observability.md) | Logging standards, metrics, tracing, alerting |
+| Engineering Practices | [engineering.md](references/engineering.md) | Test coverage, API docs, compatibility, safe migrations |
 
-审查时先读取对应参考文件获取完整检查清单。
+Read the corresponding reference file before reviewing each dimension.
 
-### 3. 问题定级
+### 3. Issue Severity Classification
 
-对发现的问题进行分级：
+Classify all findings into three levels:
 
-| 级别 | 含义 | 示例 |
-|------|------|------|
-| 🔴 **严重** | 可能导致线上事故或数据丢失 | SQL 注入、事务中含 RPC、并发数据竞争 |
-| 🟠 **重要** | 影响系统稳定性或可维护性 | 缺少超时控制、N+1 查询、缺少幂等 |
-| 🟡 **建议** | 可改进但不紧急 | 命名不清晰、日志缺少上下文、可抽取公共逻辑 |
+| Level | Meaning | Examples |
+|-------|---------|----------|
+| 🔴 **Critical** | Could cause production incidents or data loss | SQL injection, RPC inside transactions, data races |
+| 🟠 **Important** | Impacts system stability or maintainability | Missing timeouts, N+1 queries, missing idempotency |
+| 🟡 **Suggestion** | Good to fix but not urgent | Unclear naming, incomplete logging, extractable common logic |
 
-### 4. 输出审核报告
+### 4. Output Review Report
 
-按以下格式输出：
+Use the following format:
 
 ```
-## 审核摘要
-审核范围：[文件/模块列表]
-总体评价：[1-2 句话总结代码质量]
+## Review Summary
+Scope: [files / modules reviewed]
+Overall Assessment: [1-2 sentence summary of code quality]
 
-## 问题列表
+## Issues Found
 
-### 🔴 严重问题
-1. **[文件:行号]** 问题描述
-   - 原因：为什么这是一个问题
-   - 建议：具体的修复方案
+### 🔴 Critical Issues
+1. **[file:line]** Description of the issue
+   - Why: Explain why this is a problem
+   - Suggestion: Concrete fix or approach
 
-### 🟠 重要问题
+### 🟠 Important Issues
 ...
 
-### 🟡 改进建议
+### 🟡 Suggestions
 ...
 
-## 亮点
-- 值得肯定的做法（正向反馈同样重要）
+## Positives
+- Good practices worth acknowledging
 ```
 
-## 快速审查模式
+## Quick Review Mode
 
-对于小范围变更（< 5 个文件），直接按附录的 26 项自检清单快速审查：
+For small changes (< 5 files), use the 26-item quick checklist below without loading reference files:
 
-**提交前必查**：命名清晰、函数短小、提前返回、无魔法值、关键路径有日志、无重复代码
+**Pre-commit checks**: Clear naming, short focused functions, early returns, no magic values, logging on critical paths, no code duplication
 
-**数据库**：索引覆盖、事务短小无外部IO、大批量分批、数据增长考虑、不用 SELECT *
+**Database**: Index coverage, short transactions without external I/O, batched bulk operations, data growth considered, no `SELECT *`
 
-**并发与可靠性**：共享状态加锁、查询前加锁、幂等设计、超时重试、资源释放、降级保护
+**Concurrency & Reliability**: Shared state protected by locks, lock-before-read, idempotent interfaces, timeout & retry strategies, resource cleanup, degradation protection
 
-**安全与兼容**：输入校验、参数化查询、敏感数据脱敏、接口鉴权、向后兼容
+**Security & Compatibility**: Input validation, parameterized queries, sensitive data masking, endpoint authorization, backward compatibility
 
-**运维**：关键指标监控、TraceID、优雅上下线、配置外部化、密钥安全
+**Operations**: Key metrics monitored (QPS/latency/error rate), distributed tracing with TraceID, graceful startup/shutdown, externalized config, secure key storage
 
-## 审核原则
+## Review Principles
 
-- **提问而非命令**："这里用 XXX 会不会更好？" 而非 "改成 XXX"
-- **解释原因**：每个建议都要说明为什么
-- **区分必须修改和建议改进**：用问题级别标注
-- **给正向反馈**：好的设计决策也值得指出
+- **Ask, don't command**: "Would it be better to use XXX here?" instead of "Change to XXX"
+- **Explain why**: Every suggestion should include reasoning
+- **Distinguish must-fix from nice-to-have**: Use severity levels
+- **Give positive feedback**: Good design decisions are worth calling out

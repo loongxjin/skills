@@ -1,61 +1,61 @@
-# 安全防御审查清单
+# Security Defense Review Checklist
 
-## 检查项
+## Checklist
 
-### 7.1 输入校验
+### 7.1 Input Validation
 
-- [ ] Controller 层是否有参数类型校验（必填、格式、范围）
-- [ ] 是否使用 Validator 框架做声明式校验
-- [ ] Service 层是否有业务规则校验（状态、权限、跨字段联合校验）
-- [ ] 数据库层是否有唯一约束、外键约束、CHECK 约束兜底
+- [ ] Controller layer validates parameter types (required, format, range)
+- [ ] Validator framework used for declarative validation
+- [ ] Service layer validates business rules (state, permissions, cross-field checks)
+- [ ] Database layer has unique constraints, foreign keys, CHECK constraints as final guard
 
-### 7.2 注入与攻击防护
+### 7.2 Injection & Attack Prevention
 
-- [ ] SQL 是否全部使用参数化查询/预编译语句（禁止字符串拼接 SQL）
-- [ ] 是否防护 XSS（输出编码，HTML/CSS/JS context 各有对应编码）
-- [ ] 是否防护 CSRF（SameSite Cookie + CSRF Token）
-- [ ] 是否防护重放攻击（请求签名 + 时间戳 + nonce）
+- [ ] All SQL uses parameterized queries / prepared statements (string concatenation prohibited)
+- [ ] XSS prevented (output encoding for HTML/CSS/JS contexts)
+- [ ] CSRF prevented (SameSite Cookie + CSRF Token)
+- [ ] Replay attacks prevented (request signature + timestamp + nonce)
 
-### 7.3 越权与鉴权
+### 7.3 Authorization & Least Privilege
 
-- [ ] 接口是否有登录状态校验
-- [ ] 是否有数据级鉴权（不能只校验登录，还要校验数据归属）
-- [ ] 是否遵循最小权限原则：
-  - 数据库账号只有 DML 权限，无 DDL 权限
-  - API Token 只授予必要 scope
-  - 应用进程不用 root 运行
-  - 服务间调用走内网 + mTLS
+- [ ] Endpoints check login state
+- [ ] Data-level authorization exists (not just login check; verify data ownership)
+- [ ] Least privilege principle applied:
+  - DB account has only DML permissions, no DDL
+  - API tokens have minimal required scope
+  - Application process does not run as root
+  - Service-to-service calls use internal network + mTLS
 
-### 7.4 敏感数据保护
+### 7.4 Sensitive Data Protection
 
-**存储层：**
-- [ ] 密码是否使用 bcrypt/scrypt/argon2 哈希（禁止明文存储）
-- [ ] PII 数据（身份证、银行卡号）是否加密后存储（AES-256-GCM）
-- [ ] 备份文件是否加密
+**Storage:**
+- [ ] Passwords hashed with bcrypt/scrypt/argon2 (no plaintext)
+- [ ] PII (ID numbers, card numbers) encrypted at rest (AES-256-GCM)
+- [ ] Backup files are encrypted
 
-**传输层：**
-- [ ] 外部通信是否走 TLS 1.2+
-- [ ] 内部服务间是否走 TLS 或 mTLS
-- [ ] API 密钥/Token 是否通过 Header 传递（不走 URL 参数）
+**Transmission:**
+- [ ] External communication uses TLS 1.2+
+- [ ] Internal service calls use TLS or mTLS
+- [ ] API keys/tokens passed via Header, not URL parameters
 
-**展示层：**
-- [ ] 日志中敏感信息是否脱敏
-- [ ] API 响应中敏感字段是否掩码处理
-- [ ] 错误信息是否避免暴露内部细节（堆栈、SQL、文件路径）
+**Display:**
+- [ ] Sensitive data masked in logs
+- [ ] Sensitive fields masked in API responses
+- [ ] Error messages do not expose internal details (stack traces, SQL, file paths)
 
-**密钥管理：**
-- [ ] 密钥是否禁止硬编码在代码中
-- [ ] 密钥是否禁止提交到 Git
-- [ ] 是否使用 KMS/Vault 统一管理密钥
-- [ ] 不同环境是否使用不同密钥
-- [ ] 密钥是否支持定期轮换
+**Key Management:**
+- [ ] Keys are never hardcoded in code
+- [ ] Keys are never committed to Git
+- [ ] KMS/Vault used for centralized key management
+- [ ] Different environments use different keys
+- [ ] Keys support periodic rotation
 
-**脱敏规则参考：**
+**Masking Rules Reference:**
 ```
-手机号：138****1234       （保留前3后4）
-身份证：310***********1234 （保留前3后4）
-银行卡：**** **** **** 5678（保留后4）
-邮箱：  c***@example.com   （保留首字母和域名）
-密码：  [REDACTED]         （完全隐藏）
-Token： tk_****...****89ab （保留前缀和后4位）
+Phone:     138****1234        (keep first 3 and last 4)
+ID:        310***********1234 (keep first 3 and last 4)
+Card:      **** **** **** 5678 (keep last 4)
+Email:     c***@example.com   (keep first letter and domain)
+Password:  [REDACTED]         (fully hidden)
+Token:     tk_****...****89ab (keep prefix and last 4 for debugging)
 ```

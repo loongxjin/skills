@@ -1,54 +1,54 @@
-# 并发与分布式审查清单
+# Concurrency & Distributed Systems Review Checklist
 
-## 检查项
+## Checklist
 
-### 4.1 并发安全
+### 4.1 Concurrency Safety
 
-- [ ] 共享可变状态是否有加锁保护
-- [ ] 锁粒度是否最小化（只锁必须锁的代码段）
-- [ ] 是否"查询前加锁"而非"查询后加锁"（避免 TOCTOU 问题）
-- [ ] 是否避免嵌套锁；如必须嵌套，全局加锁顺序是否一致
-- [ ] 锁是否用 `defer` 确保释放
-- [ ] 是否优先考虑用 channel/消息通信消除共享状态
-- [ ] Map 是否有并发写保护（Go 的 map 非并发安全）
+- [ ] Shared mutable state is protected by locks
+- [ ] Lock granularity is minimized (only critical sections)
+- [ ] Lock is acquired **before** read, not after (prevents TOCTOU issues)
+- [ ] No nested locks; if required, global lock ordering is consistent
+- [ ] Locks are released with `defer`
+- [ ] Prefer channel/message passing to eliminate shared state
+- [ ] Maps have write protection for concurrent access (Go maps are not safe)
 
-### 4.2 幂等设计
+### 4.2 Idempotency Design
 
-- [ ] 支付回调是否幂等（网络重试会导致重复通知）
-- [ ] 消息消费是否幂等（MQ 的 at-least-once 语义）
-- [ ] 库存扣减是否幂等（重试可能多扣）
-- [ ] 状态流转是否幂等（重复请求不应改变状态）
-- [ ] 接口重试是否幂等（客户端超时后自动重试）
+- [ ] Payment callbacks are idempotent (network retries cause duplicate notifications)
+- [ ] Message consumption is idempotent (MQ at-least-once semantics)
+- [ ] Inventory deduction is idempotent (retries could double-deduct)
+- [ ] State transitions are idempotent (duplicate requests should not change state)
+- [ ] Interface retries are idempotent (client timeout auto-retry)
 
-**幂等实现方案对照：**
+**Idempotency Implementation Options:**
 
-| 方案 | 适用场景 |
-|------|---------|
-| 唯一请求 ID + 去重表 | 通用场景 |
-| 业务唯一键（orderNo + operationType） | 业务相关场景 |
-| 乐观锁（版本号） | 数据更新场景 |
-| 状态机约束 | 状态流转场景 |
+| Approach | Use Case |
+|----------|----------|
+| Unique request ID + dedup table | General purpose |
+| Business unique key (orderNo + operationType) | Business-specific |
+| Optimistic locking (version number) | Data update scenarios |
+| State machine constraints | State transition scenarios |
 
-### 4.3 分布式认知
+### 4.3 Distributed Awareness
 
-- [ ] 外部调用是否有重试和超时（网络不可靠）
-- [ ] 大数据传输是否考虑分片和压缩（带宽有限）
-- [ ] 服务是否有服务发现机制（拓扑会变）
-- [ ] 服务间调用是否有加密和鉴权（网络不安全）
+- [ ] External calls have retries and timeouts (network is unreliable)
+- [ ] Large data transfers consider sharding and compression (bandwidth is finite)
+- [ ] Service discovery mechanism exists (topology changes)
+- [ ] Service-to-service calls have encryption and auth (network is not secure)
 
-### 4.4 消息队列
+### 4.4 Message Queues
 
-- [ ] 消费者是否幂等处理（MQ 重复投递是常态）
-- [ ] 同一业务键的消息是否保证顺序（分区有序 vs 全局有序）
-- [ ] 是否有消费积压的监控和告警
-- [ ] 是否配置了死信队列（DLQ）处理消费失败的消息
-- [ ] 消息发送失败是否有补偿策略（不能静默丢消息）
-- [ ] 异步操作是否有补偿/对账机制
+- [ ] Consumer handles idempotently (duplicate delivery is normal)
+- [ ] Message ordering is considered per business key (partition order vs global order)
+- [ ] Consumer lag has monitoring and alerting
+- [ ] Dead letter queue (DLQ) is configured for failed messages
+- [ ] Producer send failures have compensation (do not silently drop messages)
+- [ ] Async operations have compensation / reconciliation mechanisms
 
-**消息一致性模式：**
+**Message Consistency Patterns:**
 
-| 模式 | 适用场景 |
-|------|---------|
-| Outbox 模式 | 强一致要求高 |
-| 事务消息（如 RocketMQ） | MQ 支持半消息 |
-| 尽力而为 + 对账 | 可接受短暂不一致 |
+| Pattern | Best For |
+|---------|----------|
+| Outbox Pattern | Strong consistency required |
+| Transactional Message (e.g. RocketMQ) | MQ supports half-message |
+| Best-effort + Reconciliation | Acceptable brief inconsistency |

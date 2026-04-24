@@ -1,50 +1,51 @@
-# 工程实践审查清单
+# Engineering Practices Review Checklist
 
-## 检查项
+## Checklist
 
-### 9.1 测试
+### 9.1 Testing
 
-- [ ] 核心业务逻辑是否有单元测试（支付、金额计算、状态流转）
-- [ ] 测试是否覆盖正常/边界/异常场景（表驱动测试）
-- [ ] 测试是否快速（慢测试会被跳过，跳过的测试等于没有）
-- [ ] 测试代码质量是否与业务代码同等对待
-- [ ] 是否有不必要的 100% 覆盖率追求（核心逻辑必须有，工具类可酌情）
+- [ ] Core business logic has unit tests (payments, amount calculation, state transitions)
+- [ ] Tests cover normal / boundary / error scenarios (table-driven tests)
+- [ ] Tests are fast (slow tests get skipped; skipped tests don't count)
+- [ ] Test code quality equals production code quality
+- [ ] No blind pursuit of 100% coverage (core logic must have tests; utilities may vary)
 
-**测试金字塔：**
+**Test Pyramid:**
 ```
-      ╱  E2E Tests  ╲        ← 少量，验证核心链路
+      ╱  E2E Tests  ╲        ← Few, validate critical paths
      ╱────────────────╲
-    ╱  Integration Tests ╲   ← 适量，验证模块交互
+    ╱  Integration Tests ╲   ← Some, validate module interaction
    ╱────────────────────────╲
-  ╱     Unit Tests            ╲  ← 大量，覆盖核心逻辑
+  ╱     Unit Tests            ╲  ← Many, cover core logic
 ```
 
-### 9.2 API 文档
+### 9.2 API Documentation
 
-- [ ] 每个接口是否有文档：URL、Method、参数、返回值、错误码、示例
-- [ ] 文档是否与实现保持同步（不一致比没文档更可怕）
-- [ ] 是否使用 Swagger/OpenAPI 等标准格式
-- [ ] 破坏性变更是否有迁移方案和过渡期
+- [ ] Every endpoint documented: URL, Method, parameters, response, error codes, examples
+- [ ] Documentation stays synchronized with implementation (outdated docs are worse than none)
+- [ ] Standard formats used: Swagger / OpenAPI
+- [ ] Breaking changes have migration plans and transition periods
 
-### 9.3 变更兼容性
+### 9.3 Change Compatibility
 
-每次修改代码时检查：
+Before every code change, verify:
 
-- [ ] 旧版本数据在新代码中能正常工作吗
-- [ ] 旧版本客户端能正常调用新接口吗
-- [ ] 数据库 Schema 变更是否向后兼容
-- [ ] 配置项变更是否有默认值，旧配置是否仍有效
-- [ ] 消息格式变更是否影响正在处理的消息
-- [ ] 是否需要灰度发布
+- [ ] Old version data works with new code
+- [ ] Old version clients can still call new endpoints
+- [ ] DB schema changes are backward compatible
+- [ ] Config changes have defaults; old configs still work
+- [ ] Message format changes do not affect in-flight messages
+- [ ] Canary deployment is considered when needed
 
-**数据库变更安全原则：**
-- 加列可以，减列要分步（先不读→再清理）
-- 改类型必须分步（加新列→迁移数据→切读新列→删旧列）
-- 永远不直接删除还在使用的列/表，先标记废弃，下个版本再清理
+**Safe DB Migration Rules:**
+- Adding columns: OK
+- Removing columns: phased (stop reading → clean up later)
+- Changing types: phased (add new column → migrate data → switch reads → drop old)
+- Never directly delete a used column/table; mark deprecated first, clean up next release
 
-### 9.4 知识管理
+### 9.4 Knowledge Management
 
-- [ ] 设计文档是否记录"为什么这样做"而不只是"做了什么"
-- [ ] 是否有运维文档：部署架构、故障手册、应急预案
-- [ ] 是否有变更记录（CHANGELOG）
-- [ ] 技术决策是否有 ADR（Architecture Decision Record）
+- [ ] Design docs explain "why" not just "what"
+- [ ] Operations docs exist: deployment architecture, runbooks, incident response
+- [ ] Changelog maintained per version
+- [ ] Technical decisions recorded with ADRs (Architecture Decision Records)

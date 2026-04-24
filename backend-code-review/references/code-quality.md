@@ -1,46 +1,46 @@
-# 代码质量审查清单
+# Code Quality Review Checklist
 
-## 检查项
+## Checklist
 
-### 1.1 命名
+### 1.1 Naming
 
-- [ ] 变量名是否准确传达意图，避免 `d`、`data`、`tmp` 等无意义命名
-- [ ] 函数名是否动词开头，描述具体行为（`validateUserPermission` 而非 `process`）
-- [ ] 类名是否为名词，反映角色职责（`PaymentProcessor` 而非 `Manager`）
-- [ ] 常量是否用命名代替魔法值（`MAX_RETRY_COUNT` 而非 `60`）
-- [ ] 文件名是否反映模块职责（`payment_processor.go` 而非 `util.go`）
-- [ ] 布尔变量是否用 `is/has/can/should` 前缀
-- [ ] 命名长度是否与作用域匹配（全局名长、局部名可短）
-- [ ] 是否存在同一名字在不同上下文表达不同含义
+- [ ] Variables clearly convey intent; avoid `d`, `data`, `tmp`
+- [ ] Functions start with verbs describing concrete actions (`validateUserPermission` not `process`)
+- [ ] Class names are nouns reflecting role responsibility (`PaymentProcessor` not `Manager`)
+- [ ] Constants replace magic values (`MAX_RETRY_COUNT` not `60`)
+- [ ] File names reflect module responsibility (`payment_processor.go` not `util.go`)
+- [ ] Boolean variables use `is/has/can/should` prefix
+- [ ] Naming length matches scope (global names are long and explicit)
+- [ ] Same name is not reused with different meanings in different contexts
 
-### 1.2 函数设计
+### 1.2 Function Design
 
-- [ ] 函数长度是否在 20 行以内（复杂逻辑不超过 50 行）
-- [ ] 参数数量是否 ≤ 3 个，超过是否封装为结构体
-- [ ] 函数是否只做一件事
-- [ ] 函数内是否混合了不同层次的抽象
-- [ ] 副作用是否在函数名和注释中体现
-- [ ] 是否使用卫语句（Guard Clauses）提前返回，避免箭头型嵌套
+- [ ] Function length is under 20 lines (complex logic under 50 at most)
+- [ ] Parameter count is ≤ 3; more should be wrapped in a struct
+- [ ] Function does one thing only
+- [ ] Function does not mix different levels of abstraction
+- [ ] Side effects are reflected in function name and comments
+- [ ] Uses guard clauses for early returns; avoids arrow-shaped nesting
 
-### 1.3 魔法值
+### 1.3 Magic Values
 
-- [ ] 是否存在未解释的字面量数字或字符串
-- [ ] 业务状态码是否使用枚举/常量
-- [ ] 配置阈值是否提取为命名常量或配置项
-- [ ] 超时时间和重试次数是否结构化配置
-- [ ] 是否优先使用方法封装意图（`user.IsActive()` 优于 `user.Status == 3`）
+- [ ] No unexplained literal numbers or strings in code
+- [ ] Business status codes use enums/constants
+- [ ] Configuration thresholds are extracted as named constants or config items
+- [ ] Timeout and retry counts are structured configuration
+- [ ] Prefer method encapsulation (`user.IsActive()` over `user.Status == 3`)
 
-### 1.4 重复代码
+### 1.4 Code Duplication
 
-- [ ] 是否存在复制三次以上的代码（三法则）
-- [ ] 抽取时是否考虑了语义独立性——不同业务语境下可能独立变化的代码不应强行合并
-- [ ] 是否优先用组合而非继承来复用
+- [ ] No code copied three or more times (rule of three)
+- [ ] Extraction preserves semantic independence — code in different business contexts should not be forced together
+- [ ] Prefer composition over inheritance for code reuse
 
-### 1.5 日志
+### 1.5 Logging
 
-- [ ] 关键业务路径是否有日志
-- [ ] 日志是否包含足够定位问题的上下文（ID、状态、关键数据、错误原因）
-- [ ] 日志级别是否正确（DEBUG/INFO/WARN/ERROR）
-- [ ] 是否在循环中打了 INFO 及以上级别的日志
-- [ ] 敏感信息（密码、Token、身份证、手机号）是否脱敏
-- [ ] 是否使用结构化日志便于检索
+- [ ] Critical business paths have logging
+- [ ] Logs contain enough context for troubleshooting (IDs, status, key data, error cause)
+- [ ] Log levels are correct (DEBUG / INFO / WARN / ERROR)
+- [ ] No INFO or higher level logging inside loops
+- [ ] Sensitive information (passwords, tokens, IDs, phone numbers) is masked
+- [ ] Structured logging is used for searchability

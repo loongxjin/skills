@@ -1,56 +1,56 @@
-# 可靠性工程审查清单
+# Reliability Engineering Review Checklist
 
-## 检查项
+## Checklist
 
-### 5.1 限流、熔断、降级
+### 5.1 Rate Limiting, Circuit Breaker, Degradation
 
-- [ ] 对外接口是否有限流保护（令牌桶/漏桶/滑动窗口）
-- [ ] 调用下游服务是否有熔断机制（异常率超阈值时断开调用）
-- [ ] 熔断是否有 Half-Open 状态用于试探恢复
-- [ ] 是否有降级策略（返回缓存数据/关闭非核心功能确保核心可用）
-- [ ] 限流/熔断/降级是否配置了合理的阈值并可动态调整
+- [ ] External interfaces have rate limiting (token bucket / leaky bucket / sliding window)
+- [ ] Downstream service calls have circuit breaker (trip when error rate exceeds threshold)
+- [ ] Circuit breaker has a Half-Open state for recovery probing
+- [ ] Degradation strategy exists (return cached data / disable non-critical features)
+- [ ] Thresholds are reasonable and dynamically adjustable
 
-### 5.2 重试策略
+### 5.2 Retry Strategy
 
-- [ ] 重试前是否确认错误是可重试的（网络超时可重试，业务错误不可重试）
-- [ ] 被重试的操作是否幂等
-- [ ] 重试是否有退避策略（指数退避 + 随机抖动，避免惊群效应）
-- [ ] 重试次数是否有上限
-- [ ] 重试是否尊重 context 取消
+- [ ] Error is confirmed retryable before retrying (network timeout yes, business error no)
+- [ ] Retried operation is idempotent
+- [ ] Retry has backoff (exponential backoff + random jitter to prevent thundering herd)
+- [ ] Retry count has an upper limit
+- [ ] Retry respects context cancellation
 
-**标准退避实现要点：**
-- baseDelay * 2^attempt + random_jitter
-- 设置 maxDelay 上限
-- 支持 context 取消中断
+**Standard Backoff Key Points:**
+- `baseDelay * 2^attempt + random_jitter`
+- Set `maxDelay` ceiling
+- Support context cancellation interrupt
 
-### 5.3 超时控制
+### 5.3 Timeout Control
 
-- [ ] **每个外部调用是否都设置了超时**（永远不要无限等待）
-- [ ] 超时值是否合理：
+- [ ] **Every external call has a timeout** (never wait indefinitely)
+- [ ] Timeouts are reasonable:
 
-| 调用类型 | 建议超时 |
-|---------|---------|
-| HTTP 请求 | 3~10s |
-| 数据库查询 | 1~5s |
-| Redis 操作 | 100~500ms |
-| RPC 调用 | 依下游 SLA，1~5s |
-| 连接建立 | 3~5s |
+| Call Type | Suggested Timeout |
+|-----------|-------------------|
+| HTTP request | 3-10s |
+| DB query | 1-5s |
+| Redis operation | 100-500ms |
+| RPC call | Based on downstream SLA, usually 1-5s |
+| Connection establishment | 3-5s |
 
-- [ ] 是否设置了全链路超时（应大于各环节超时之和）
+- [ ] End-to-end timeout is set and exceeds the sum of individual component timeouts
 
-### 5.4 资源释放
+### 5.4 Resource Cleanup
 
-- [ ] 文件句柄是否用 `defer` 确保关闭
-- [ ] 数据库连接是否用 `defer` 确保释放
-- [ ] 锁是否用 `defer` 确保释放
-- [ ] HTTP Response Body 是否用 `defer` 关闭
-- [ ] Goroutine 是否有明确的退出机制（context cancellation / done channel）
-- [ ] 启动 goroutine 前是否明确了它的生命周期
+- [ ] File handles closed with `defer`
+- [ ] DB connections released with `defer`
+- [ ] Locks released with `defer`
+- [ ] HTTP Response Body closed with `defer`
+- [ ] Goroutines have explicit exit mechanisms (context cancellation / done channel)
+- [ ] Goroutine lifecycle is defined before launch
 
-### 5.5 优雅上下线
+### 5.5 Graceful Startup & Shutdown
 
-- [ ] 启动时是否先初始化依赖连接再接流量
-- [ ] 是否注册了健康检查接口
-- [ ] 下线时是否先从注册中心摘除，等待进行中请求完成
-- [ ] 是否设了优雅等待时间（如 15s）
-- [ ] 关闭时是否刷新缓冲区、释放资源
+- [ ] Startup initializes dependencies before accepting traffic
+- [ ] Health check endpoint is registered
+- [ ] Shutdown deregisters from service registry and waits for in-flight requests
+- [ ] Graceful wait time is configured (e.g. 15s)
+- [ ] Buffers are flushed and resources are released on exit

@@ -1,49 +1,49 @@
-# 数据库与存储审查清单
+# Database & Storage Review Checklist
 
-## 检查项
+## Checklist
 
-### 3.1 索引与查询
+### 3.1 Indexing & Queries
 
-- [ ] WHERE / JOIN / ORDER BY 涉及的列是否都有索引
-- [ ] 联合索引是否遵循最左前缀原则，选择性高的列在前
-- [ ] 是否避免了在低区分度列（如性别）上建单列索引
-- [ ] 单表索引数量是否控制在 5-6 个以内
-- [ ] 是否避免了 `SELECT *`，明确列出需要的字段
-- [ ] 是否避免了前缀模糊查询 `LIKE '%keyword%'`（应用全文索引/ES 替代）
-- [ ] 深分页是否使用游标分页/基于 ID 分页（避免 `LIMIT 100000,10`）
-- [ ] 是否存在 N+1 查询（循环中逐条查询），应改为 JOIN 或批量 IN
-- [ ] 参数类型是否与列类型一致，避免隐式类型转换导致索引失效
-- [ ] 是否避免了 `ORDER BY RAND()`
+- [ ] All WHERE / JOIN / ORDER BY columns are evaluated for indexing
+- [ ] Composite indexes follow the leftmost prefix rule; high-selectivity columns first
+- [ ] Avoid single-column indexes on low-cardinality columns (e.g. gender)
+- [ ] Single table index count is kept within 5-6
+- [ ] No `SELECT *`; only required columns are listed
+- [ ] No prefix wildcard `LIKE '%keyword%'` (use full-text index / Elasticsearch instead)
+- [ ] Deep pagination uses cursor-based or ID-based paging (avoid `LIMIT 100000,10`)
+- [ ] No N+1 queries (looping one-by-one); use JOIN or batch IN queries
+- [ ] Parameter types match column types to avoid implicit conversion disabling indexes
+- [ ] No `ORDER BY RAND()`
 
-### 3.2 事务
+### 3.2 Transactions
 
-- [ ] 事务是否短小，持有锁时间是否最小化
-- [ ] **事务中是否禁止了外部 IO**（RPC、HTTP 请求不应在事务内）
-- [ ] 事务粒度是否最小化，只包裹必须保证一致性的操作
-- [ ] 长事务是否考虑拆分，通过状态机+补偿保证最终一致性
+- [ ] Transactions are short; lock hold time is minimized
+- [ ] **No external I/O inside transactions** (RPC, HTTP requests are prohibited)
+- [ ] Transaction scope is as small as possible, wrapping only operations that need consistency
+- [ ] Long transactions are split; use state machine + compensation for eventual consistency
 
-### 3.3 数据增长
+### 3.3 Data Growth
 
-- [ ] 是否评估了表的数据量级和增长速度
-- [ ] `COUNT(*)` 在大表上是否用统计表或缓存替代
-- [ ] 大批量 `DELETE` 是否分批执行
-- [ ] VARCHAR 长度是否按需设定
-- [ ] 大表 JOIN 是否考虑冗余字段或宽表
+- [ ] Data volume and growth rate are assessed for each table
+- [ ] `COUNT(*)` on large tables uses stat tables or cache instead
+- [ ] Bulk `DELETE` is executed in batches
+- [ ] VARCHAR lengths are set appropriately
+- [ ] JOINs on large tables consider denormalized fields or wide tables
 
-### 3.4 数据一致性
+### 3.4 Data Consistency
 
-- [ ] 金额操作是否在同一事务内完成（强一致性）
-- [ ] 跨服务操作是否通过消息队列/状态机/补偿机制保证最终一致性
-- [ ] 是否有对账兜底机制（定时任务比对上下游数据差异）
+- [ ] Monetary operations use strong consistency within a single transaction
+- [ ] Cross-service operations use message queues / state machine / compensation for eventual consistency
+- [ ] Reconciliation mechanism exists as a last resort (scheduled job comparing upstream and downstream data)
 
-## 反模式示例
+## Anti-pattern Example
 
 ```
-// 🔴 事务中包含 RPC 调用
+// 🔴 RPC call inside a transaction — dangerous! Network call can take seconds
 tx := db.Begin()
 tx.Create(&order)
-paymentClient.Charge(order)  // 危险！网络调用可能耗时数秒
+paymentClient.Charge(order)  // network call holds DB lock
 tx.Commit()
 
-// ✅ 正确做法：先完成本地事务，再调用外部服务
+// ✅ Correct: complete local transaction first, then call external service
 ```

@@ -1,42 +1,42 @@
-# 架构设计审查清单
+# Architecture Design Review Checklist
 
-## 检查项
+## Checklist
 
-### 2.1 分层与职责边界
+### 2.1 Layer Boundaries & Responsibilities
 
-- [ ] Controller/Handler 层是否只做参数校验、权限校验、协议转换，不含业务逻辑
-- [ ] Service/Domain 层是否只包含业务规则，不直接操作 HTTP 对象（Request/Response）
-- [ ] Repository/DAO 层是否只关心数据读写，不含业务判断
-- [ ] 依赖方向是否严格上层→下层，无反向依赖
-- [ ] 是否存在 Controller 里直接调用 Repository 跳过 Service 的情况
+- [ ] Controller/Handler layer only does parameter validation, auth check, protocol conversion — no business logic
+- [ ] Service/Domain layer only contains business rules, does not directly manipulate HTTP objects (Request/Response)
+- [ ] Repository/DAO layer only handles data access, contains no business decisions
+- [ ] Dependencies flow strictly top-down; no upward dependencies
+- [ ] No Controller calling Repository directly, skipping Service
 
-### 2.2 接口与依赖倒置
+### 2.2 Interfaces & Dependency Inversion
 
-- [ ] 核心逻辑是否依赖抽象接口而非具体实现
-- [ ] 接口定义是否在消费者侧（Go 建议）还是提供者侧
-- [ ] 是否通过依赖注入组装依赖，而非在内部 new 具体实现
-- [ ] 接口是否可替换、可 Mock 以便单测
-- [ ] 新增实现是否不影响已有逻辑（开闭原则）
+- [ ] Core logic depends on abstract interfaces, not concrete implementations
+- [ ] Interfaces are defined on the consumer side (Go best practice)
+- [ ] Dependencies are injected at initialization, not instantiated internally
+- [ ] Interfaces are replaceable and mockable for unit testing
+- [ ] Adding new implementations does not affect existing logic (Open/Closed Principle)
 
-### 2.3 配置与代码分离
+### 2.3 Config Separation
 
-- [ ] 基础设施地址（DB、Redis、MQ）是否外部化
-- [ ] 超时与重试参数是否可配置
-- [ ] 密钥与凭证是否通过 Vault/Secret Manager 管理，未硬编码在代码或 Git 中
-- [ ] 特性开关（灰度、降级）是否外部化
-- [ ] 业务阈值（限额、限流值、缓存 TTL）是否可配置
-- [ ] 不同环境是否通过环境变量或配置中心区分，同一份代码多环境部署
+- [ ] Infrastructure addresses (DB, Redis, MQ) are externalized
+- [ ] Timeout and retry parameters are configurable
+- [ ] Keys and credentials are managed via Vault/Secret Manager, not hardcoded or in Git
+- [ ] Feature flags (canary, degradation) are externalized
+- [ ] Business thresholds (limits, rate limits, cache TTL) are configurable
+- [ ] Different environments use environment variables or config centers; same code deploys everywhere
 
-### 2.4 单一职责
+### 2.4 Single Responsibility
 
-- [ ] 是否存在超过 500 行的 Service 文件
-- [ ] 是否有类注入了十几个依赖
-- [ ] 改一个业务功能是否需要修改同一文件的多个位置
-- [ ] 如存在上述问题，是否应按业务领域或技术关注点拆分
+- [ ] No Service file exceeds 500 lines
+- [ ] No class injects a dozen dependencies
+- [ ] Changing one business feature does not require modifying the same file in multiple places
+- [ ] If the above exist, consider splitting by business domain or technical concern
 
-## 反模式信号
+## Anti-pattern Signals
 
-- **Fat Controller**：Controller 包含业务逻辑 → 无法复用、无法单测
-- **协议泄漏**：Service 层直接依赖 HTTP Request/Response → 耦合协议层
-- **上帝类**：一个类/文件承担过多职责 → 修改风险高、合并冲突多
-- **硬编码配置**：环境相关的值写在代码中 → 多环境部署困难
+- **Fat Controller**: Controller contains business logic → not reusable, not testable
+- **Protocol Leak**: Service layer depends on HTTP Request/Response → tightly coupled
+- **God Class**: One class/file takes on too many responsibilities → high change risk, merge conflicts
+- **Hardcoded Config**: Environment-specific values in code → hard to deploy across environments
