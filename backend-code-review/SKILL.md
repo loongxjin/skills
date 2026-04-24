@@ -1,89 +1,247 @@
 ---
 name: backend-code-review
-description: Backend code review skill based on a 9-dimension thinking framework. Use when reviewing backend code, conducting PR/MR reviews, assessing code quality, or identifying potential risks in backend systems. Covers code quality, architecture design, database and storage, concurrency and distributed systems, reliability engineering, performance and scalability, security, observability, and engineering practices. Applicable to Go, Java, Python, and other backend languages.
+description: |
+  后端代码质量审查技能。基于资深后端工程实践，从6大领域29个维度系统深入审查后端代码质量。
+  Use when reviewing, auditing, or evaluating backend code quality — including Go, Java, Python, Rust, C++, or any backend language.
+  Triggers: 代码审查, code review, 后端代码质量, backend quality, review backend code, 检查代码质量, 审查代码, CR, code review checklist。
 ---
 
-# Backend Code Review
+# 后端代码质量审查
 
-Systematic code quality and risk assessment for backend systems based on a backend engineer thinking framework.
+## 核心原则
 
-## Review Process
+**深度优先于广度。** 宁可深入分析3个问题，不要浅尝辄止29个点。每个发现的问题必须：定位到具体代码行 → 解释为什么有问题 → 给出修改后的代码。
 
-### 1. Determine Review Scope
+**顺藤摸瓜，而非逐项打勾。** 有价值的问题往往藏在调用链上，而非单个函数里。先梳理关键路径，再沿着路径深挖，比按维度机械搜索更容易发现问题。
 
-Identify the code files, modules, and layers involved in the change. Mark critical files for focused review.
+## 工作流程（必须遵循）
 
-### 2. Dimension-by-Dimension Review
+### 第一步：确定审查范围与方向
 
-Review each of the following nine dimensions sequentially. Detailed checklists and anti-pattern examples for each dimension are in the corresponding file under `references/`:
+**根据用户意图灵活选择，不要机械执行。** 判断逻辑：
 
-| Dimension | Reference File | Core Focus |
-|-----------|---------------|------------|
-| Code Quality | [code-quality.md](references/code-quality.md) | Naming, function design, magic values, duplication, logging |
-| Architecture | [architecture.md](references/architecture.md) | Layer boundaries, interface abstraction, config separation, SRP |
-| Database & Storage | [database.md](references/database.md) | Indexing, transactions, N+1, data growth, consistency |
-| Concurrency & Distributed | [concurrency.md](references/concurrency.md) | Thread safety, idempotency, message queues, distributed awareness |
-| Reliability | [reliability.md](references/reliability.md) | Rate limiting, circuit breaker, retry, timeout, resource cleanup |
-| Performance & Scalability | [performance.md](references/performance.md) | Caching, batch operations, memory awareness, long-running concerns |
-| Security | [security.md](references/security.md) | Input validation, injection prevention, authorization, sensitive data |
-| Observability | [observability.md](references/observability.md) | Logging standards, metrics, tracing, alerting |
-| Engineering Practices | [engineering.md](references/engineering.md) | Test coverage, API docs, compatibility, safe migrations |
+| 用户意图 | 操作 | 是否需要问 |
+|----------|------|------------|
+| 已明确方向（如"审查并发安全"/"看看SQL有没有问题"） | 直接进入对应维度审查 | ❌ 不要问 |
+| 小改动（< 5 个文件）且无特定方向 | 快速全维度扫描 | ❌ 不要问 |
+| 大量代码且无特定方向 | **问一下**用户想重点审查哪个方向 | ✅ 问 |
 
-Read the corresponding reference file before reviewing each dimension.
+**需要问时，用 AskUserQuestion 呈现以下选项：**
 
-### 3. Issue Severity Classification
+> **你想重点审查哪个方向？可多选。**
+>
+> | 选项 | 说明 | 涵盖维度 |
+> |------|------|----------|
+> | 🔧 代码基础 | 命名、函数职责、参数、控制流、魔法值、代码复用 | #1-#6 |
+> | 💪 健壮性与性能 | 数据库、并发、事务、数据增长、稳定性、日志 | #7-#12 |
+> | 🏗️ 架构与设计 | 分层、接口、配置分离 | #13-#15 |
+> | 🛡️ 容错与安全 | 幂等、熔断、重试、资源、输入校验、权限 | #16-#21 |
+> | 📊 数据与运维 | 缓存、监控与上下线、链路追踪 | #22-#24 |
+> | ✅ 测试与文档 | 测试、CR习惯、文档、易错点、兼容性 | #25-#29 |
 
-Classify all findings into three levels:
+用户选择后，**只读取选中方向对应的 reference 文件**。建议每次选 2-3 个方向以保证审查深度；选更多方向时深度会相应降低，请知悉。
 
-| Level | Meaning | Examples |
-|-------|---------|----------|
-| 🔴 **Critical** | Could cause production incidents or data loss | SQL injection, RPC inside transactions, data races |
-| 🟠 **Important** | Impacts system stability or maintainability | Missing timeouts, N+1 queries, missing idempotency |
-| 🟡 **Suggestion** | Good to fix but not urgent | Unclear naming, incomplete logging, extractable common logic |
+**审查模式选择**：
 
-### 4. Output Review Report
+| 模式 | 适用场景 | 流程 |
+|------|----------|------|
+| ⚡ 快速审查 | 小变更（< 5 个文件）或用户说"快速看看" | 跳过第二步，直接按选定维度搜索 |
+| 🔍 深度审查 | 大量代码或用户要求仔细 review | 完整6步流程 |
 
-Use the following format:
+### 第二步：梳理核心调用链 + 识别关键路径（深度审查必须执行）
+
+**不要急着按维度搜索。先花2-3分钟梳理出代码的核心调用路径。**
+
+用 Grep/Glob/ReadFile 工具做以下事情：
+
+1. **识别项目语言和框架**，后续审查只关注对应语言的搜索模式
+2. **找到入口点**：Controller/Handler 的公开方法，或 MQ Consumer 的处理函数
+3. **沿调用链向下读**：入口 → Service → Repository/外部调用，逐层读代码
+4. **画出调用链**：用文本列出关键路径，例如：
 
 ```
-## Review Summary
-Scope: [files / modules reviewed]
-Overall Assessment: [1-2 sentence summary of code quality]
-
-## Issues Found
-
-### 🔴 Critical Issues
-1. **[file:line]** Description of the issue
-   - Why: Explain why this is a problem
-   - Suggestion: Concrete fix or approach
-
-### 🟠 Important Issues
-...
-
-### 🟡 Suggestions
-...
-
-## Positives
-- Good practices worth acknowledging
+POST /orders
+  → OrderHandler.Create()          # 入口：参数校验、绑定
+    → OrderService.CreateOrder()    # 业务：库存检查、金额计算
+      → StockRepo.Deduct()          # DB：扣库存（先查后改？）
+      → PaymentService.Charge()     # RPC：外部支付调用（在事务内？）
+      → OrderRepo.Save()            # DB：保存订单
+    → MessageProducer.Publish()     # MQ：发消息（发送失败怎么办？）
 ```
 
-## Quick Review Mode
+5. **标记高风险节点**：在调用链上标注以下类型的位置，后续优先深挖：
+   - **外部调用**（HTTP/RPC/MQ）→ 超时？熔断？失败处理？
+   - **事务边界**（Begin/Commit）→ 事务内有 IO？忘记回滚？
+   - **共享状态**（锁/全局变量/缓存）→ 竞态？一致性？
+   - **写操作**（Insert/Update/Delete）→ 幂等？数据增长？
+   - **错误分支**（if err / catch / except）→ 错误被吞？资源泄漏？
 
-For small changes (< 5 files), use the 26-item quick checklist below without loading reference files:
+6. **输出关键路径摘要**：
 
-**Pre-commit checks**: Clear naming, short focused functions, early returns, no magic values, logging on critical paths, no code duplication
+```
+关键路径：POST /api/orders → OrderHandler.Create → OrderService.CreateOrder → tx.Begin → OrderRepo.Insert + StockRepo.Deduct → MQ.Publish → tx.Commit
+高风险节点：tx.Begin~tx.Commit（含 MQ.Publish）、StockRepo.Deduct（并发扣减）、MQ.Publish（发送失败处理）
+```
 
-**Database**: Index coverage, short transactions without external I/O, batched bulk operations, data growth considered, no `SELECT *`
+**⚠️ 必须输出调用链摘要后再继续。** 这一步是整个审查最有价值的环节，跳过会大幅降低审查质量。
 
-**Concurrency & Reliability**: Shared state protected by locks, lock-before-read, idempotent interfaces, timeout & retry strategies, resource cleanup, degradation protection
+**为什么这一步很重要？** 因为按维度搜索是"拿着锤子找钉子"——你会找到很多小问题，但容易漏掉跨层组合的大问题。先梳理调用链，你就能看到完整的数据流和控制流，发现诸如"事务里调了 RPC"、"先查后改没有原子保护"、"消息发送失败但事务已提交"这类跨维度问题。
 
-**Security & Compatibility**: Input validation, parameterized queries, sensitive data masking, endpoint authorization, backward compatibility
+### 第三步：深入审查（围绕关键路径 + 选定维度）
 
-**Operations**: Key metrics monitored (QPS/latency/error rate), distributed tracing with TraceID, graceful startup/shutdown, externalized config, secure key storage
+**只读取第一步确定的 reference 文件**，对每个维度严格遵循以下步骤：
 
-## Review Principles
+1. **扫描**：用 reference 中的搜索关键词 Grep 搜索代码
+2. **定位**：找到具体代码行，ReadFile 查看上下文
+3. **分析**：对照 references 中的检查清单逐项验证
+4. **场景推演**（这一步决定了审查深度）：对每个可疑点，**用具体场景推演**而非静态判断
 
-- **Ask, don't command**: "Would it be better to use XXX here?" instead of "Change to XXX"
-- **Explain why**: Every suggestion should include reasoning
-- **Distinguish must-fix from nice-to-have**: Use severity levels
-- **Give positive feedback**: Good design decisions are worth calling out
+**场景推演清单**：
+
+| 维度 | 推演问题 |
+|------|----------|
+| 并发安全 | 100个请求同时执行这段代码，共享状态会怎样？ |
+| 事务 | 事务内的这个 RPC 超时了，DB 回滚了但下游已处理，状态一致吗？ |
+| 幂等 | 这个接口被重复调用3次，数据会变成什么样？ |
+| 数据增长 | 这个表数据量到1亿行，这个查询还能在1秒内返回吗？ |
+| 资源释放 | 如果这个函数在第X行报错，之前打开的连接/锁释放了吗？ |
+| 缓存 | 缓存刚好在查询和写入之间过期，会出现什么？ |
+| 重试 | 重试的第三次成功了，但前两次的副作用怎么处理？ |
+| 链路 | 用户反馈了一个bug，用日志能定位到具体哪个服务的哪行代码吗？ |
+
+**错误路径追踪要求**：
+
+对每个 error/exception 分支，必须追问：
+- 错误是否被**静默吞掉**？（`if err != nil { return nil }` 或 `catch (e) {}`）
+- 事务是否在**错误路径上回滚**？（还是只 Commit 不 Rollback？）
+- 资源是否在**错误路径上释放**？（还是只处理了 happy path？）
+- 调用方是否能**正确处理这个错误**？（还是上游会 panic/crash？）
+
+5. **判断**：给出 ✅/⚠️/❌，附具体代码行号和原因
+6. **建议**：❌ 和 ⚠️ 必须给出修改后的完整代码片段
+
+**禁止一句话带过。** 以下是错误示范和正确示范：
+
+> ❌ 错误："并发安全：未发现明显问题"
+> ✅ 正确："并发安全：搜索了 `sync.Mutex` 和 `Lock()` 发现 3 处加锁。其中 `service.go:142` 的 `UpdateStock` 方法存在 TOCTOU 问题——先查询库存再判断再扣减，两步操作未在同一个锁内，高并发下可能超卖。应改为 `SELECT ... FOR UPDATE` 或将判断与更新合并为单条 SQL：`UPDATE stock SET count = count - ? WHERE id = ? AND count >= ?`"
+
+**精力分配建议**：
+- 调用链梳理（第二步）：20% 时间
+- 高风险节点深挖：50% 时间
+- 其余维度扫描：20% 时间
+- 报告整理：10% 时间
+
+### 第四步：跨维度关联检查
+
+**审查完选中的维度后，必须做一次跨维度关联检查。** 回顾第二步的调用链，检查以下高风险组合：
+
+| 组合 | 要追问的问题 |
+|------|-------------|
+| 事务 + 外部调用 | 事务范围内是否包含 HTTP/RPC/MQ 调用？调用失败后事务回滚了吗？ |
+| 并发 + 数据库 | 先查后改是否在同一个锁/事务内？是否存在 TOCTOU？ |
+| 幂等 + 重试 | 重试的接口是否幂等？重复调用会不会导致重复扣款/发货？ |
+| 缓存 + 数据库 | 缓存更新策略是否正确？先更新DB再删缓存？异常路径下缓存和DB是否一致？ |
+| 消息队列 + 事务 | 消息发送和DB操作是否在同一个事务内？消息发送失败但DB已提交怎么办？ |
+| 输入校验 + SQL | 用户输入是否直接拼接到 SQL 中？参数化查询覆盖了吗？ |
+| 重试 + 限流 | 重试风暴是否会压垮下游？重试是否有退避策略？ |
+| 数据增长 + 内存 | 全量加载的数据在增长后是否会 OOM？分页/流式处理了吗？ |
+
+如果调用链上存在以上组合，即使对应的维度不在用户选择的范围内，也必须标记出来并在报告中说明。
+
+### 第五步：缺失项检测
+
+**审查代码里"该有但没有"的东西。** 对比第二步标记的高风险节点，逐一检查：
+
+| 看到 | 必须检查是否有 | 缺失则标记 |
+|------|---------------|-----------|
+| 外部调用（HTTP/RPC） | 超时控制 + 错误处理 | ❌ 无超时/无错误处理 |
+| 事务 Begin | 事务内无 IO + 有 Rollback | ❌ 事务内混 IO / 无 Rollback |
+| 写操作（Insert/Update/Delete） | 幂等保护 | ❌ 无幂等 |
+| go func / 线程 / 协程 | 退出机制 | ❌ 无退出机制 |
+| 锁 Lock | 对应 Unlock（含 error 路径） | ❌ 锁泄漏 |
+| 错误处理 if err / catch | 日志记录 | ❌ 静默吞错 |
+| 缓存读取 | 缓存失效策略 + 防穿透 | ❌ 无 TTL / 无防穿透 |
+| 重试逻辑 | 可重试判断 + 退避策略 + 最大次数 | ❌ 盲目重试 |
+| 文件/连接打开 | defer/finally/with 关闭 | ❌ 资源泄漏 |
+| 核心业务逻辑 | 自动化测试 | ⚠️ 无测试覆盖 |
+
+### 第六步：输出报告
+
+```markdown
+## 审查结果
+
+### 总评：[🟢 通过 / 🟡 建议改进 / 🔴 必须修复]
+
+### 关键路径
+POST /api/orders → OrderHandler.Create → OrderService.CreateOrder → ...
+高风险节点：tx.Begin~tx.Commit（含 MQ.Publish）、StockRepo.Deduct（并发扣减）
+
+### 核心调用链
+（列出第二步梳理的调用链，标注发现问题的位置）
+
+### 深度发现
+
+#### ❌ [CRITICAL] 并发竞态 — service.go:142 UpdateStock
+**问题**：先查询再扣减不在同一锁内，TOCTOU 问题
+**推演**：100个并发请求同时执行，线程A查到库存=1，线程B也查到库存=1，都判断通过，扣减两次变成-1
+**影响**：超卖，直接资金损失
+**修复**：
+​```go
+// Before
+stock := s.repo.GetStock(ctx, sku)
+if stock.Count >= qty {
+    s.repo.DeductStock(ctx, sku, qty)
+}
+// After
+affected, err := s.repo.DeductStockIfEnough(ctx, sku, qty) // 单条 SQL 原子操作
+​```
+
+#### ⚠️ [WARN] 魔法数字 — handler.go:58
+...
+
+#### ✅ [GOOD] 事务使用 — order.go:200
+事务范围最小化，仅包含两条 INSERT，无外部调用...
+
+### 缺失项
+| 看到 | 缺失 | 位置 | 严重程度 |
+|------|------|------|----------|
+| 外部调用 paymentService.charge | 无超时控制 | service.go:89 | ❌ |
+| goroutine go processOrder | 无退出机制 | worker.go:45 | ❌ |
+| 错误处理 if err != nil | 无日志记录 | handler.go:33 | ⚠️ |
+
+### 跨维度关联风险
+（列出第四步发现的跨维度问题）
+
+### 维度检查汇总
+| # | 维度 | 状态 | 位置 | 备注 |
+|---|------|------|------|------|
+| 1 | 命名规范 | ✅ | — | |
+| 17 | 并发安全 | ❌ | service.go:142 | TOCTOU |
+| 23 | 日志规范 | ⚠️ | logger.go:30 | 缺 trace_id |
+```
+
+**❌ 问题按修复优先级排序**：安全漏洞 > 数据正确性 > 生产可用性 > 性能 > 可维护性
+
+## 六大审查领域索引
+
+| 领域 | 维度 | Reference |
+|------|------|-----------|
+| 一、代码基础 | #1-#6 命名、函数职责、参数、控制流、魔法值、代码复用 | [domain-basics.md](references/domain-basics.md) |
+| 二、健壮性与性能 | #7-#12 数据库与批量、并发、事务、数据增长、稳定性、日志 | [domain-robustness.md](references/domain-robustness.md) |
+| 三、架构与设计 | #13-#15 分层、接口、配置分离 | [domain-architecture.md](references/domain-architecture.md) |
+| 四、容错与安全 | #16-#21 幂等、熔断、重试、资源、输入校验、权限 | [domain-fault-tolerance.md](references/domain-fault-tolerance.md) |
+| 五、数据与运维 | #22-#24 缓存、监控与上下线、链路追踪 | [domain-data-ops.md](references/domain-data-ops.md) |
+| 六、测试与文档 | #25-#29 测试、CR习惯、文档、易错点、兼容性 | [domain-testing-docs.md](references/domain-testing-docs.md) |
+
+## 关键提醒
+
+- **根据用户意图灵活选择**：已明确方向就别再问，大量代码且无方向才需要问
+- **深度审查时必须先识别关键路径**，围绕高风险节点深挖，而非平均分配精力
+- **快速审查跳过第二步**，直接按选定维度搜索即可
+- 用户选什么就审什么，只加载对应的 reference 文件
+- 一定要用工具（Grep/ReadFile）实际检查代码，不要靠猜测
+- **每个 ❌ 必须包含场景推演**：假设 X 发生，会怎样
+- 每个 ❌ 必须附带修复代码，不能只说"建议优化"
+- **错误路径和缺失项是最容易出问题的地方**，务必重点检查
+- 如果某个维度不适用于当前代码，标注 N/A 并说明原因
+- **跨维度关联检查不能跳过**，即使维度不在用户选择范围内也要标记风险
