@@ -11,23 +11,17 @@
 
 ### 搜索模式
 
-```bash
-# Go：Controller 直接操作数据库
-grep -rn 'func.*Controller\|func.*Handler' --include='*.go' -A20 | grep 'DB\|db\|sql\|Query\|Exec\|\.Find\|\.Where'
-# Java：Controller 直接操作数据库
-grep -rn '@Controller\|@RestController\|@GetMapping\|@PostMapping' --include='*.java' -A10 | grep 'JdbcTemplate\|Repository\|mapper\.\|session\.\|createQuery'
-# Python：View/路由直接操作数据库
-grep -rn '@app.route\|@router\.\|def .*view' --include='*.py' -A10 | grep 'Model\.\|objects\.\|session\.\|cursor\.\|db\.'
-# TypeScript：Controller 直接操作数据库
-grep -rn '@Controller\|@Get\|@Post\|@Router' --include='*.ts' -A10 | grep 'prisma\.\|repository\.\|\.query\|\.raw'
+```
+# Controller/Handler 直接操作数据库（跨层调用信号）
+Go:       func Controller / func Handler 中出现 DB, db, sql, Query, Exec, .Find, .Where
+Java:     @Controller / @RestController / @GetMapping 中出现 JdbcTemplate, Repository, mapper., session.
+Python:   @app.route / @router. / def view 中出现 Model., objects., session., cursor., db.
+TypeScript: @Controller / @Get / @Post 中出现 prisma., repository., .query, .raw
 
 # "上帝函数"（超过100行的函数/方法）
-# Go
-awk '/^func /{name=$0; start=NR} /^}$/{if(NR-start>100) print NR, name}' *.go
-# Java
-awk '/public.*{/{name=$0; start=NR} /^    }$/{if(NR-start>100) print NR, name}' *.java
-# Python
-awk '/^def /{name=$0; start=NR} /^$/{if(NR-start>100) print NR, name}' *.py
+Go:       awk '/^func /{name=$0; start=NR} /^}$/{if(NR-start>100) print NR, name}' *.go
+Java:     awk '/public.*{/{name=$0; start=NR} /^    }$/{if(NR-start>100) print NR, name}' *.java
+Python:   awk '/^def /{name=$0; start=NR} /^$/{if(NR-start>100) print NR, name}' *.py
 ```
 
 ### 检查清单
@@ -46,7 +40,7 @@ awk '/^def /{name=$0; start=NR} /^$/{if(NR-start>100) print NR, name}' *.py
 
 ### 场景推演
 
-**跨层调用推演**：Controller 直接操作数据库的话，如果将来要换数据库实现，要改几个地方？如果要在 Service 调用前加权限校验，要在几个地方加？
+**跨层调用推演**：Controller 直接操作数据库的话，如果将来要换数据库实现，要改几个地方？如果要在 Service 调用前加权限校验，要在几个地方加？如果 Service 层的某个函数要被 HTTP 和 gRPC 两个入口复用，它能直接处理 HTTP 请求对象吗？
 
 **上帝函数推演**：这个100行的函数，如果出了 bug，你能快速定位是哪一段出的问题吗？测试时能单独测其中一段吗？
 
@@ -54,37 +48,25 @@ awk '/^def /{name=$0; start=NR} /^$/{if(NR-start>100) print NR, name}' *.py
 
 > **深挖信号**：如果跨层调用或上帝函数确实存在，要求开发者画出当前调用链路图，标注每层的边界违规点，并给出拆分方案。
 
-> 如果要把数据库从 MySQL 换成 PostgreSQL，需要改哪些文件？如果 Controller 里直接写了 SQL，那就得改 Controller 了——这合理吗？如果 Service 层的某个函数要被 HTTP 和 gRPC 两个入口复用，它能直接处理 HTTP 请求对象吗？
-
 ---
 
 ## 14. 面向接口编程
 
 ### 搜索模式
 
-```bash
-# Go：接口定义
-grep -rn 'type\s\+\w\+\s\+interface' --include='*.go'
-# Go：具体类型直接注入
-grep -rn 'struct{.*\*.*Impl\|struct{.*\*mysql\|struct{.*\*redis\|struct{.*\*postgres' --include='*.go'
+```
+# 接口定义
+Go:         type <Name> interface
+Java:       interface <Name>
+Python:     Protocol, ABC, @abstractmethod
+Rust:       trait <Name>
+TypeScript: interface <Name>
 
-# Java：接口 vs 具体类注入
-grep -rn '@Autowired\|@Inject\|@Resource' --include='*.java' -A1 | grep 'Impl\b\|MySQL\|Redis\|Postgres'
-# Java：接口定义
-grep -rn 'interface\s\+\w\+' --include='*.java'
-
-# Python：Protocol/ABC
-grep -rn 'Protocol\|ABC\|abstractmethod\|@abstractmethod' --include='*.py'
-# Python：具体类直接导入
-grep -rn 'from.*import.*Impl\|from.*mysql\|from.*redis' --include='*.py'
-
-# Rust：trait 定义
-grep -rn 'trait\s\+\w\+' --include='*.rs'
-
-# TypeScript：interface 定义
-grep -rn 'interface\s\+\w\+' --include='*.ts'
-# TypeScript：具体类注入
-grep -rn 'new.*Impl\|new.*Repository\|new.*Service' --include='*.ts'
+# 具体类型直接注入（依赖具体实现信号）
+Go:         struct 中嵌入 *mysql, *redis, *postgres, *Impl
+Java:       @Autowired / @Inject / @Resource 后接 Impl, MySQL, Redis, Postgres
+Python:     from ... import Impl / from ... import mysql / from ... import redis
+TypeScript: new Impl / new Repository / new Service
 ```
 
 ### 检查清单
@@ -105,15 +87,11 @@ grep -rn 'new.*Impl\|new.*Repository\|new.*Service' --include='*.ts'
 
 ### 场景推演
 
-**可替换性推演**：如果把 MySQL 换成 PostgreSQL，要改几个文件？如果要给 OrderService 写单测，能 mock 掉数据库依赖吗？
+**可替换性推演**：如果把 MySQL 换成 PostgreSQL，要改几个文件？如果要给 OrderService 写单测，能 mock 掉数据库依赖吗？业务层直接 `new MySQLClient()` 时，两个服务共用同一套业务逻辑但用不同的存储引擎怎么办？
 
-**接口粒度推演**：这个接口有几个方法？如果一个调用方只用到其中一个方法，却被强制依赖了所有方法，这合理吗？
+**接口粒度推演**：这个接口有几个方法？如果一个调用方只用到其中一个方法，却被强制依赖了所有方法，这合理吗？接口是否在持续添加方法？是否应该拆分为更小的接口？
 
-**接口膨胀推演**：接口是否在持续添加方法？是否应该拆分为更小的接口？
-
-> **深挖信号**：如果核心业务逻辑直接依赖具体实现，要求开发者指出替换实现的改动的文件数，并给出接口抽象方案和 mock 测试示例。
-
-> 业务层直接 `new MySQLClient()`。如果要写单元测试，你怎么 mock 这个数据库？如果要换 PostgreSQL，要改几个文件？如果两个服务共用同一套业务逻辑但用不同的存储引擎呢？
+> **深挖信号**：如果核心业务逻辑直接依赖具体实现，要求开发者指出替换实现需改动的文件数，并给出接口抽象方案和 mock 测试示例。
 
 ---
 
@@ -121,21 +99,19 @@ grep -rn 'new.*Impl\|new.*Repository\|new.*Service' --include='*.ts'
 
 ### 搜索模式
 
-```bash
-# 通用：硬编码的端口、地址
-# 注意：硬编码数字的通用搜索在 domain-basics.md #5 消除魔法值，此处聚焦于环境配置类硬编码
-grep -rn '3306\|5432\|6379\|27017\|localhost\|127.0.0.1\|0.0.0.0' --include='*.go' --include='*.java' --include='*.py' --include='*.rs' --include='*.ts'
+```
+# 硬编码的环境配置（端口、地址）— 此处聚焦环境配置类硬编码，通用魔法值见 #5
+通用: 3306, 5432, 6379, 27017, localhost, 127.0.0.1, 0.0.0.0
 
 # 硬编码的密钥/token（🔴 安全风险）
-grep -rni 'password\s*=\s*"\|secret\s*=\s*"\|token\s*=\s*"\|api_key\s*=\s*"\|apikey\s*=\s*"' --include='*.go' --include='*.java' --include='*.py' --include='*.ts'
-grep -rni 'password\s*=\s*'\''\|secret\s*=\s*'\''\|token\s*=\s*'\''' --include='*.py'
+通用: password = "...", secret = "...", token = "...", api_key = "...", apikey = "..."
 
 # 配置读取方式
-grep -rn 'os.Getenv\|viper\.\|config\.' --include='*.go'
-grep -rn '@Value\|@ConfigurationProperties\|Environment\|Config' --include='*.java'
-grep -rn 'os.environ\|os.getenv\|config\.\|settings\.\|pydantic' --include='*.py'
-grep -rn 'std::env::\|dotenv\|config::' --include='*.rs'
-grep -rn 'process.env\|config\.\|ConfigModule' --include='*.ts'
+Go:       os.Getenv, viper., config.
+Java:     @Value, @ConfigurationProperties, Environment, Config
+Python:   os.environ, os.getenv, config., settings., pydantic
+Rust:     std::env::, dotenv, config::
+TypeScript: process.env, config., ConfigModule
 ```
 
 ### 检查清单
@@ -153,15 +129,13 @@ grep -rn 'process.env\|config\.\|ConfigModule' --include='*.ts'
 
 ### 场景推演
 
-**多环境推演**：同一份代码，开发环境和生产环境的配置（数据库地址、密钥、超时时间）不同，怎么切换？硬编码意味着需要改代码重新编译。
+**多环境推演**：同一份代码，开发环境和生产环境的配置（数据库地址、密钥、超时时间）不同，怎么切换？硬编码意味着需要改代码重新编译。部署到生产环境时忘了改 `localhost:6379`，会怎样？
 
-**密钥泄露推演**：密钥硬编码在代码里，代码进 Git 后，哪些人能看到？密钥一旦泄露，轮换流程是什么？需要通知所有有代码访问权限的人吗？
+**密钥泄露推演**：密钥硬编码在代码里，代码进 Git 后，哪些人能看到？密钥一旦泄露，轮换流程是什么？如果代码开源了或泄露了，攻击者能做什么？
 
 **配置变更推演**：修改一个超时时间需要重新部署吗？能否通过配置中心热更新？
 
 > **深挖信号**：如果存在硬编码的密钥或环境配置，要求开发者说明多环境切换机制，并给出配置外置的改造方案和密钥轮换流程。
-
-> 代码里写了 `redis.NewClient("localhost:6379")`。部署到生产环境时，忘了改，会怎样？这个密钥硬编码在代码里，如果代码开源了或泄露了，攻击者能做什么？
 
 ---
 

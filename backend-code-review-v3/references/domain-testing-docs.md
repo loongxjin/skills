@@ -13,37 +13,11 @@
 
 ### 搜索模式
 
-```bash
-# Go：测试文件
-find . -name '*_test.go'
-grep -rn 'func Test\|func Benchmark\|func Fuzz' --include='*_test.go'
-
-# Java：测试文件
-find . -name '*Test.java' -o -name '*Tests.java' -o -name '*IT.java'
-grep -rn '@Test\|@ParameterizedTest\|@RepeatedTest' --include='*Test.java' --include='*Tests.java'
-
-# Python：测试文件
-find . -name 'test_*.py' -o -name '*_test.py'
-grep -rn 'def test_\|class Test\|@pytest' --include='test_*.py' --include='*_test.py'
-
-# Rust：测试
-find . -name '*.rs' -exec grep -l '#\[test\]' {} \;
-grep -rn '#\[test\]\|#\[tokio::test\]' --include='*.rs'
-
-# TypeScript：测试文件
-find . -name '*.test.ts' -o -name '*.spec.ts'
-grep -rn 'describe(\|it(\|test(' --include='*.test.ts' --include='*.spec.ts'
-
-# Mock 使用
-grep -rn 'gomock\|mock\|Mock\|testify\|mockery' --include='*.go'
-grep -rn 'Mockito\|@Mock\|@InjectMocks\|mockito' --include='*.java'
-grep -rn 'unittest.mock\|@patch\|mocker\|pytest-mock\|freezegun' --include='*.py'
-grep -rn 'jest.fn\|jest.mock\|sinon\|vi.fn\|vi.mock' --include='*.ts'
-
-# 核心业务逻辑（应有测试覆盖）
-grep -rn 'func.*Pay\|func.*Charge\|func.*Deduct\|func.*Transfer\|func.*Calculate' --include='*.go'
-grep -rn 'public.*pay\|public.*charge\|public.*deduct\|public.*transfer\|public.*calculate' --include='*.java'
-grep -rn 'def.*pay\|def.*charge\|def.*deduct\|def.*transfer\|def.*calculate' --include='*.py'
+```
+测试文件: Go *_test.go | Java *Test.java *Tests.java *IT.java | Python test_*.py *_test.py | Rust *.rs | TypeScript *.test.ts *.spec.ts
+测试函数: Go func Test func Benchmark func Fuzz | Java @Test @ParameterizedTest @RepeatedTest | Python def test_ class Test @pytest | Rust #[test] #[tokio::test] | TypeScript describe( it( test(
+Mock: Go gomock testify mockery | Java Mockito @Mock @InjectMocks | Python unittest.mock @patch pytest-mock freezegun | TypeScript jest.fn jest.mock sinon vi.fn vi.mock
+核心业务: Go func.*Pay func.*Charge func.*Deduct func.*Transfer func.*Calculate | Java public.*pay public.*charge public.*deduct public.*transfer public.*calculate | Python def.*pay def.*charge def.*deduct def.*transfer def.*calculate
 ```
 
 ### 检查清单
@@ -73,9 +47,9 @@ grep -rn 'def.*pay\|def.*charge\|def.*deduct\|def.*transfer\|def.*calculate' --i
 
 **Mock vs 真实推演**：mock 了数据库返回成功，但真实数据库有唯一约束。这种 bug 单测能发现吗？需要集成测试吗？
 
-> **深挖信号**：如果核心业务逻辑没有测试覆盖，或者测试只有 happy path，应立即追问边界条件和异常路径的测试情况。
+**状态机推演**：支付逻辑有 4 种状态（待支付、已支付、已退款、已取消）和 6 种状态转换规则。手动测试能覆盖所有组合吗？如果要加第 5 种状态"部分退款"，能确保不改坏现有逻辑吗？没有单测，你敢改吗？
 
-> **推演场景补充**：这段支付逻辑有 4 种状态（待支付、已支付、已退款、已取消）和 6 种状态转换规则。手动测试能覆盖所有组合吗？如果现在要加第 5 种状态"部分退款"，你能确保不改坏现有逻辑吗？如果没有单测，你敢改吗？
+> **深挖信号**：如果核心业务逻辑没有测试覆盖，或者测试只有 happy path，应立即追问边界条件和异常路径的测试情况。
 
 ---
 
@@ -98,29 +72,9 @@ grep -rn 'def.*pay\|def.*charge\|def.*deduct\|def.*transfer\|def.*calculate' --i
 
 ### 搜索模式
 
-```bash
-# Go（Swag/Gin-Swag）
-grep -rn '@Router\|@Summary\|@Tags\|@Param\|@Success\|@Failure' --include='*.go'
-# Go（Protobuf/gRPC）
-grep -rn 'rpc \|message \|service ' --include='*.proto'
-
-# Java（Swagger/OpenAPI）
-grep -rn '@ApiOperation\|@Api\|@Schema\|@Operation\|@Tag' --include='*.java'
-# Java（SpringDoc/SpringFox）
-grep -rn '@Operation\|@ApiResponse\|@Schema\|@Tag' --include='*.java'
-
-# Python（DRF Spectacular / Flask-RESTX）
-grep -rn 'swagger\|openapi\|@swagger\|serializers\.' --include='*.py'
-
-# TypeScript（OpenAPI / NestJS / tRPC）
-grep -rn '@ApiOperation\|@ApiResponse\|@ApiTags' --include='*.ts'
-grep -rn 'swagger\|openapi\|trpc\.' --include='*.ts'
-
-# 路由定义（对比文档）
-grep -rn 'router\.\|r\.GET\|r\.POST\|r\.PUT\|r\.DELETE\|Group\|Handle' --include='*.go'
-grep -rn '@GetMapping\|@PostMapping\|@PutMapping\|@DeleteMapping\|@RequestMapping' --include='*.java'
-grep -rn '@app.route\|@router\.\|path\(' --include='*.py'
-grep -rn '@Get\|@Post\|@Put\|@Delete\|router\.' --include='*.ts'
+```
+文档注解: Go @Router @Summary @Tags @Param @Success @Failure rpc message service(.proto) | Java @ApiOperation @Api @Schema @Operation @Tag @ApiResponse | Python swagger openapi @swagger serializers. | TypeScript @ApiOperation @ApiResponse @ApiTags swagger openapi trpc.
+路由定义: Go router. r.GET r.POST r.PUT r.DELETE Group Handle | Java @GetMapping @PostMapping @PutMapping @DeleteMapping @RequestMapping | Python @app.route @router. path( | TypeScript @Get @Post @Put @Delete router.
 ```
 
 ### 检查清单
@@ -137,15 +91,13 @@ grep -rn '@Get\|@Post\|@Put\|@Delete\|router\.' --include='*.ts'
 
 ### 场景推演
 
-**文档不一致推演**：文档说返回 `user_id`，代码返回 `userId`。前端按文档开发的，上线后解析失败。这种问题 CR 能发现吗？
+**文档不一致推演**：文档说返回 `user_id`，代码返回 `userId`。前端按文档开发的，上线后解析失败。更危险的是：文档说 `status: number`，代码已改成 `status: string`，下游按 number 解析，线上全部报错。文档和代码不一致，比没有文档更危险。
 
 **废弃 API 推演**：某个接口已经标记废弃3个月了，还有调用方在用吗？直接删除会怎样？有没有下线计划？
 
 **字段变更推演**：新增了一个必填字段但没有更新文档，调用方不知道要传这个字段，生产环境报 400。
 
 > **深挖信号**：文档与代码不一致是协作问题的源头。发现任何字段名、类型、必填/可选的不一致，都应立即标记并追踪影响范围。
-
-> **推演场景补充**：接口文档说返回 `status: number`，代码里已经改成了 `status: string`。下游团队按文档开发的客户端，解析 `status` 时按 number 处理，线上全部报错。文档和代码不一致，比没有文档更危险。
 
 ---
 
@@ -173,17 +125,13 @@ grep -rn '@Get\|@Post\|@Put\|@Delete\|router\.' --include='*.ts'
 
 **空指针推演**：这个函数的返回值在调用方有判空吗？如果数据库查询返回 nil/null，下游代码会 panic/NPE 吗？
 
-**金额精度推演**：`0.1 + 0.2 == 0.3` 成立吗？金额字段用的 float 还是 decimal？累计100万笔交易后精度偏差有多大？
+**金额精度推演**：`0.1 + 0.2 == 0.3` 在 float 中是 `False`。金额字段用的 float 还是 decimal？`price * quantity` 的误差在单价小、数量大时会放大。10000 次 `0.1 + 0.2` 的累积误差有多少？
 
-**时区推演**：服务器在不同时区，`time.Now()` 返回的时间一样吗？存入数据库的时间是 UTC 还是本地时间？跨时区查询会怎样？
+**时区推演**：`time.Now()` 返回的是服务器本地时间。如果服务器在上海（UTC+8），数据库用 UTC 存储，查询 `WHERE created_at > '2024-01-01'` 会差 8 小时。跨时区查询会怎样？
 
 **除零推演**：平均值的除数可能是 0 吗？百分比计算的分母可能是 0 吗？
 
 > **深挖信号**：易错点是 bug 的高发区域。空指针、金额精度、时区、除零——每一个看似小问题，在生产环境都可能引发大面积故障。审查时应逐一排查，不可跳过。
-
-> **推演场景补充（精度）**：`0.1 + 0.2 == 0.3` 在 float 中是 `False`。如果这是在计算金额，`price * quantity` 的误差在单价小、数量大时会放大。10000 次 `0.1 + 0.2` 的累积误差有多少？
->
-> **推演场景补充（时区）**：`time.Now()` 返回的是服务器本地时间。如果服务器在上海（UTC+8），但数据库用 UTC 存储查询条件 `WHERE created_at > '2024-01-01'`，会差 8 小时。
 
 ---
 
@@ -191,25 +139,11 @@ grep -rn '@Get\|@Post\|@Put\|@Delete\|router\.' --include='*.ts'
 
 ### 搜索模式
 
-```bash
-# 数据库 schema 变更
-grep -rn 'ALTER TABLE\|ADD COLUMN\|DROP COLUMN\|MODIFY COLUMN\|CREATE TABLE' --include='*.sql' --include='*.go' --include='*.java' --include='*.py' --include='*.ts'
-
-# 序列化/反序列化标签（API 字段定义）
-# Go
-grep -rn 'json:"\|xml:"\|form:"\|query:"\|gorm:"' --include='*.go'
-# Java
-grep -rn '@JsonProperty\|@XmlElement\|@Column' --include='*.java'
-# Python
-grep -rn 'Field(\|serializer\|@dataclass\|pydantic' --include='*.py'
-# TypeScript
-grep -rn '@ApiProperty\|@IsOptional\|interface\s\+\w\+\s*{' --include='*.ts'
-
-# 配置项变更
-grep -rn 'Config\|config\|\.Env\|viper\|pydantic' --include='*.go' --include='*.java' --include='*.py' --include='*.ts'
-
-# 枚举/常量变更
-grep -rn 'const\|iota\|enum\|Enum\|Enumeration' --include='*.go' --include='*.java' --include='*.py' --include='*.ts'
+```
+Schema 变更: ALTER TABLE ADD COLUMN DROP COLUMN MODIFY COLUMN CREATE TABLE
+序列化标签: Go json: xml: form: query: gorm: | Java @JsonProperty @XmlElement @Column | Python Field( serializer @dataclass pydantic | TypeScript @ApiProperty @IsOptional interface
+配置项: Config config .Env viper pydantic
+枚举/常量: const iota enum Enum Enumeration
 ```
 
 ### 检查清单
@@ -228,17 +162,13 @@ grep -rn 'const\|iota\|enum\|Enum\|Enumeration' --include='*.go' --include='*.ja
 
 ### 场景推演
 
-**旧客户端推演**：新版 API 删除了一个字段，还有10%的旧版客户端在读这个字段。这些用户会看到什么？崩溃？空白？
+**旧客户端推演**：新版 API 删除了 `discount_price` 字段，旧版客户端代码 `if (response.discount_price > 0)` 变成 `undefined > 0`，JavaScript 里是 `false`——业务逻辑错误但没有报错。静默出错最可怕。还有10%的旧版客户端在读这个字段，会看到什么？崩溃？空白？
 
-**数据库变更推演**：给表加了一个 NOT NULL 字段但没有默认值，旧代码插入数据时会报错。部署顺序是先代码还是先数据库？
+**数据库变更推演**：给表加了一个 NOT NULL 字段但没有默认值，旧代码插入数据时会报错。部署顺序是先代码还是先数据库？如果 DB 新增 `is_verified` 字段无默认值，旧数据全是 NULL，`if user.is_verified { ... }` 对旧用户不生效——如果影响的是风控逻辑呢？
 
 **枚举新增推演**：在枚举中新增了一个值，旧版本的 switch/match 能处理这个新值吗？会走到 default 分支吗？default 分支的行为正确吗？
 
 > **深挖信号**：向后兼容问题往往不在开发时暴露，而在部署或版本切换时集中爆发。任何 schema、枚举、API 字段的变更，都应模拟新旧版本共存的场景。
-
-> **推演场景补充（删字段）**：API 响应里删了 `discount_price` 字段。旧版本客户端代码是 `if (response.discount_price > 0)`，删了之后变成 `undefined > 0`，JavaScript 里是 `false`，业务逻辑错误但没有报错。静默出错最可怕。
->
-> **推演场景补充（新字段无默认值）**：DB 新增了 `is_verified` 字段但没有默认值。旧数据全是 `NULL`。代码 `if user.is_verified { ... }` 对旧用户不生效。如果这影响的是风控逻辑呢？
 
 ---
 

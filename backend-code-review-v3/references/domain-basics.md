@@ -14,20 +14,8 @@
 
 ### 搜索模式
 
-根据项目语言选择对应的后缀和关键字：
-
-```bash
-# Go
-grep -rn '\btmp\|temp\b\|\bret\b\|\bdata\b\|\binfo\b\|\bresult\b\|\bobj\b\|\bval\b\|\bbuf\b\|\bnum\b' --include='*.go'
-# Java
-grep -rn '\btmp\|temp\b\|\bret\b\|\bdata\b\|\binfo\b\|\bresult\b\|\bobj\b\|\bval\b' --include='*.java'
-# Python
-grep -rn '\btmp\b\|\btemp\b\|\bret\b\|\bdata\b\|\binfo\b\|\bresult\b\|\bobj\b\|\bval\b' --include='*.py'
-# Rust
-grep -rn '\btmp\b\|\btemp\b\|\bret\b\|\bdata\b\|\binfo\b\|\bresult\b\|\bobj\b\|\bval\b' --include='*.rs'
-# TypeScript
-grep -rn '\btmp\b\|\btemp\b\|\bret\b\|\bdata\b\|\binfo\b\|\bresult\b\|\bobj\b\|\bval\b' --include='*.ts' --include='*.tsx'
-```
+搜索关键词：tmp, temp, ret, data, info, result, obj, val, buf, num
+适用文件：*.go, *.java, *.py, *.rs, *.ts, *.tsx
 
 ### 检查清单
 - [ ] 变量名是否表达了业务含义（`orderCount` 而非 `cnt`）
@@ -49,10 +37,9 @@ grep -rn '\btmp\b\|\btemp\b\|\bret\b\|\bdata\b\|\binfo\b\|\bresult\b\|\bobj\b\|\
 - **六个月后你还能看懂吗？** 如果一个变量叫 `data`，你需要在函数内来回滚动才能理解它是什么，那就该重命名
 - **代码审查时会不会误解？** `result` 到底是成功结果还是错误结果？`info` 是用户信息还是订单信息？
 - **grep 能精准定位吗？** 搜 `data` 会匹配到满屏结果，搜 `orderConfirmData` 只会匹配到你想要的地方
+- **新同事能看懂吗？** 看到 `result2`，能否在不看上下文的情况下知道它代表什么？
 
 > **深挖信号**：如果一个函数内有多个 `data`/`result`/`info` 变量，这通常意味着函数做了太多事，应结合 #2 函数职责单一一起审视。
-
-> 一个新同事看到 `result2`，能否在不看上下文的情况下知道它代表什么？3个月后你自己还能看懂吗？
 
 ---
 
@@ -60,21 +47,9 @@ grep -rn '\btmp\b\|\btemp\b\|\bret\b\|\bdata\b\|\binfo\b\|\bresult\b\|\bobj\b\|\
 
 ### 搜索模式
 
-```bash
-# Go：搜索函数定义
-grep -rn 'func ' --include='*.go'
-# Java：搜索方法定义
-grep -rn 'public\|private\|protected' --include='*.java' | grep '\('
-# Python：搜索函数/方法定义
-grep -rn 'def ' --include='*.py'
-# Rust：搜索函数定义
-grep -rn 'fn ' --include='*.rs'
-# TypeScript：搜索函数定义
-grep -rn 'function \|=>\|async ' --include='*.ts' --include='*.tsx'
-
-# 多职责信号：函数名中包含 and/or
-grep -rni '\w[Aa]nd\w\|\w[Oo]r\w' --include='*.go' --include='*.java' --include='*.py' --include='*.rs' --include='*.ts' | grep -i 'func\|def\|fn\|function\|public\|private'
-```
+语言特定函数定义：Go `func`、Java `public/private/protected`、Python `def`、Rust `fn`、TypeScript `function`/`=>`/`async`
+多职责信号：函数名中包含 `and`/`or`（如 `CreateAndSend`、`parse_or_default`）
+适用文件：*.go, *.java, *.py, *.rs, *.ts, *.tsx
 
 ### 检查清单
 - [ ] 函数是否超过 50 行（超过需警惕）
@@ -94,10 +69,9 @@ grep -rni '\w[Aa]nd\w\|\w[Oo]r\w' --include='*.go' --include='*.java' --include=
 - **改其中一个职责时，会不会误伤另一个？** 比如 `CreateAndSendOrder` 里改了发送逻辑，不小心影响了创建逻辑
 - **测试时能单独测其中一个行为吗？** 如果不能，说明耦合太紧
 - **调用方真的需要同时做这两件事吗？** 有些场景只需要创建不需要发送
+- **报错时能快速定位吗？** 如果函数报错了，你能从函数名快速定位是哪个职责出了问题吗？
 
 > **深挖信号**：函数内出现"段落注释"（`// 第一步：创建订单`、`// 第二步：发送通知`），说明它在做两件独立的事。如果段落之间有共享状态（临时变量），那拆分时要特别注意数据传递方式。结合 #13 分层 检查是否不同抽象层级的操作混在了一起。
-
-> 这个函数需要修改时，是否会因为多种职责混合在一起，导致改一处影响另一处？如果函数报错了，你能从函数名快速定位是哪个职责出了问题吗？
 
 ---
 
@@ -105,26 +79,9 @@ grep -rni '\w[Aa]nd\w\|\w[Oo]r\w' --include='*.go' --include='*.java' --include=
 
 ### 搜索模式
 
-```bash
-# Go：4个及以上参数的函数
-grep -rn 'func\s\+\w\+\s*(.\+,.\+,.\+,.\+)' --include='*.go'
-# Java：多参数方法
-grep -rn 'void\s\+\w\+(.\+,.\+,.\+,.\+)' --include='*.java'
-# Python：多参数函数
-grep -rn 'def\s\+\w\+(.\+,.\+,.\+,.\+)' --include='*.py'
-# Rust：多参数函数
-grep -rn 'fn\s\+\w\+(.\+,.\+,.\+,.\+)' --include='*.rs'
-# TypeScript：多参数函数
-grep -rn 'function\s\+\w\+(.\+,.\+,.\+,.\+)' --include='*.ts'
-
-# bool 参数（常用于控制分支）
-# Go
-grep -rn 'func\s\+.*bool\b' --include='*.go'
-# Java
-grep -rn 'boolean\b\|Boolean\b' --include='*.java' | grep '('
-# Python
-grep -rn 'def\s\+.*bool\b' --include='*.py'
-```
+多参数信号：函数签名中出现 4 个及以上参数（正则匹配 `..., ..., ..., ...`）
+bool 参数：`bool`（Go/Python）、`boolean`/`Boolean`（Java）出现在参数列表中
+适用文件：*.go, *.java, *.py, *.rs, *.ts
 
 ### 检查清单
 - [ ] 参数是否超过3个
@@ -145,26 +102,15 @@ grep -rn 'def\s\+.*bool\b' --include='*.py'
 
 > **深挖信号**：如果同一组参数在多个函数中反复出现（如 `userID, orderID, amount`），这不仅是一个参数精简问题，还可能意味着缺少一个领域对象（如 `OrderContext`）。结合 #13 分层 和 #14 面向接口 检查是否缺少必要的抽象。
 
-> 调用方写 `CreateOrder(user, items, true, false, nil, "express")` 时，能看懂每个参数的含义吗？如果第5个参数要改成必填，所有调用方都要改吗？
-
 ---
 
 ## 4. 控制流扁平化
 
 ### 搜索模式
 
-```bash
-# Go：深层嵌套（3层 tab 或 8+ spaces）
-grep -rn '^\t\t\t' --include='*.go'
-# Java
-grep -rn '^\t\t\t' --include='*.java'
-# Python（Python 用缩进定义作用域，嵌套尤其致命）
-grep -rn '^            ' --include='*.py'  # 3层缩进（12 spaces）
-
-# else 分支
-grep -rn '} else {' --include='*.go' --include='*.java'
-grep -rn 'else:' --include='*.py'
-```
+深层嵌套：3层及以上缩进（tab 或 8+ spaces）
+else 分支：`} else {`（Go/Java）、`else:`（Python）
+适用文件：*.go, *.java, *.py, *.rs, *.ts, *.tsx
 
 ### 检查清单
 - [ ] 是否存在超过2层嵌套的 if-else
@@ -229,10 +175,9 @@ if not data.is_valid():
 - **每个分支的异常路径都处理了吗？** 嵌套越深，越容易遗漏某个分支的错误处理
 - **happy path 是不是藏在了最内层？** 如果读代码需要滚动到最深处才能看到正常逻辑，说明嵌套有问题
 - **哪个分支最可能出 bug？** 嵌套中的 else 分支往往是最少被测试的，也最容易藏 bug
+- **要加一个条件呢？** 4层 if 中如果要加条件，要在第几层加？加完后可读性会怎样？
 
 > **深挖信号**：深层嵌套往往伴随着隐含的业务规则。`if A then if B then if C` 实际上是一个业务条件 `A && B && C`，但它被拆成了三层。这不仅影响可读性，还意味着如果 B 失败了，开发者可能忘记处理。结合 #28 易错点自问 检查每个分支的错误路径是否都有处理。
-
-> 这段嵌套代码有 4 层 if，如果要在最内层加一个条件，你要在第几层加？加完后可读性会怎样？
 
 ---
 
@@ -240,16 +185,9 @@ if not data.is_valid():
 
 ### 搜索模式
 
-```bash
-# 通用：搜索硬编码数字（排除 0, 1, -1）
-grep -rn '[^a-zA-Z_][2-9][0-9]*[^a-zA-Z_0-9.]' --include='*.go' --include='*.java' --include='*.py' --include='*.rs' --include='*.ts'
-# 通用：搜索状态码硬编码
-grep -rn '== [0-9]\|!= [0-9]' --include='*.go' --include='*.java' --include='*.py' --include='*.rs' --include='*.ts'
-# Java：搜索硬编码字符串常量
-grep -rn '= "' --include='*.java' | grep -v 'final\|static final'
-# Python：搜索硬编码字符串
-grep -rn '= "' --include='*.py' | grep -v 'CLASS\|ENUM'
-```
+硬编码数字：非 0/1/-1 的裸数字出现在条件或赋值中
+硬编码字符串：`"..."` 赋值但无 `final`/`static final`/枚举修饰
+适用文件：*.go, *.java, *.py, *.rs, *.ts
 
 ### 检查清单
 - [ ] 数字常量是否有命名（`maxRetryCount` 而非 `3`）
@@ -270,10 +208,9 @@ grep -rn '= "' --include='*.py' | grep -v 'CLASS\|ENUM'
 - **业务规则变了，要改几个地方？** 状态码 `3` 出现在 5 个文件中，业务说"已取消"要改成 `4`，你能确保全部改到吗？
 - **这个数字的含义，新人能看懂吗？** `if status == 3` vs `if status == OrderStatus.Cancelled`
 - **这个超时时间在不同环境下都合理吗？** 本地测试 3 秒够了，生产环境可能需要 10 秒。硬编码意味着无法按环境调整
+- **同数字不同含义？** 另一个开发者也用了 `3` 但代表不同的业务含义，搜索时会怎样？
 
 > **深挖信号**：如果硬编码的数字用于状态判断，检查是否有遗漏的状态值。比如代码只处理了 `status == 1` 和 `status == 2`，但数据库里实际有 3 种状态，第 3 种状态会被默认逻辑错误处理。结合 #10 数据增长敏感性 和 #28 易错点自问 中的"边界"检查。
-
-> `if status == 3` 这个 3 代表什么？如果要改成 4，你确定能找到所有该改的地方吗？如果另一个开发者也用了 `3` 但含义不同呢？
 
 ---
 
@@ -283,28 +220,12 @@ grep -rn '= "' --include='*.py' | grep -v 'CLASS\|ENUM'
 
 ### 搜索模式
 
-```bash
-# 搜索相似的错误处理模式（重复的 if err != nil / try-catch）
-grep -rn 'if err != nil' --include='*.go' | awk -F: '{print $1}' | sort | uniq -c | sort -rn | head -20
-grep -rn 'catch (' --include='*.java' | awk -F: '{print $1}' | sort | uniq -c | sort -rn | head -20
-grep -rn 'except ' --include='*.py' | awk -F: '{print $1}' | sort | uniq -c | sort -rn | head -20
-
-# 搜索重复的参数校验逻辑
-grep -rn 'required\|Required\|@NotNull\|@NotBlank\|validate\|Validate' --include='*.go' --include='*.java' --include='*.py' --include='*.ts'
-
-# 搜索重复的 CRUD 模板（相似的 Create/Update/Delete 函数签名）
-grep -rn 'func.*Create\|func.*Update\|func.*Delete' --include='*.go'
-grep -rn 'public.*create\|public.*update\|public.*delete' --include='*.java'
-grep -rn 'def.*create\|def.*update\|def.*delete' --include='*.py'
-
-# 搜索重复的配置/常量定义
-grep -rn 'const\|static final\|MAX_\|MIN_\|DEFAULT_' --include='*.go' --include='*.java' --include='*.py'
-
-# 搜索重复的工具函数（同一个操作在多处实现）
-grep -rn 'func.*Is\|func.*Has\|func.*Check\|func.*Parse\|func.*Format' --include='*.go'
-grep -rn 'public.*is\|public.*has\|public.*check\|public.*parse\|public.*format' --include='*.java'
-grep -rn 'def.*is_\|def.*has_\|def.*check_\|def.*parse_\|def.*format_' --include='*.py'
-```
+重复错误处理：`if err != nil`（Go）、`catch (`（Java）、`except `（Python）在同一文件中高频出现
+重复校验逻辑：required, @NotNull, @NotBlank, validate 等关键词
+重复 CRUD 模板：Create/Update/Delete 函数签名高度相似
+重复工具函数：Is/Has/Check/Parse/Format 开头的函数在多处有相同实现
+重复配置常量：const, static final, MAX_, MIN_, DEFAULT_ 在多处定义
+适用文件：*.go, *.java, *.py, *.rs, *.ts
 
 ### 检查清单
 
@@ -330,7 +251,7 @@ grep -rn 'def.*is_\|def.*has_\|def.*check_\|def.*parse_\|def.*format_' --include
 
 ### 深挖方法
 
-1. **定位重复**：对以上搜索结果，按文件分组统计，高频模式即为重复信号
+1. **定位重复**：按文件分组统计，高频模式即为重复信号
 
 2. **分析复用价值**（不是所有重复都需要消除）：
    - 两处相同且业务相关度高 → 必须抽取
@@ -354,8 +275,6 @@ grep -rn 'def.*is_\|def.*has_\|def.*check_\|def.*parse_\|def.*format_' --include
 - **重复的业务规则是否意味着领域模型缺失？** 如果"订单状态流转"的逻辑散落在 5 个地方，可能不是代码复用的问题，而是缺少一个 `OrderStateMachine` 领域对象
 
 > **深挖信号**：重复代码最危险的不是维护成本，而是**一致性风险**。当一份重复的业务逻辑被修改了但另一份没有，就产生了隐性 bug。结合 #16 幂等设计 检查重复的写操作逻辑是否一致，结合 #28 易错点自问 检查重复的边界条件处理是否一致。
-
-> 这段校验逻辑在3个文件里各有一份。现在业务规则变了（比如手机号要支持+86前缀），你能确保3处都改了吗？如果漏改了一处呢？
 
 ---
 

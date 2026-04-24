@@ -12,42 +12,27 @@
 
 ## 7. 数据库性能与批量操作
 
-### 搜索模式
+### 搜索关键词
 
-```bash
-# Go（GORM/标准库）
-grep -rn '\.Find\|\.First\|\.Where\|\.Raw\|\.Exec\|db.Query\|db.Exec' --include='*.go'
-# Java（MyBatis/JPA/JDBC）
-grep -rn '@Select\|@Insert\|@Update\|@Delete\|createQuery\|executeQuery\|jdbcTemplate\|mapper\.' --include='*.java'
-# Python（SQLAlchemy/Django ORM）
-grep -rn 'session.query\|\.filter\|\.objects\|\.raw\|cursor.execute\|\.all()' --include='*.py'
-# Rust（SQLx/Diesel）
-grep -rn 'query\|execute\|fetch\|sqlx::\|diesel::' --include='*.rs'
-# TypeScript（Prisma/TypeORM/Sequelize/Knex）
-grep -rn '\.findMany\|\.findUnique\|\.findFirst\|\.raw\|\.query\|createQueryBuilder\|knex(' --include='*.ts'
+```
+ORM/查询:
+  Go: .Find, .First, .Where, .Raw, .Exec, db.Query, db.Exec
+  Java: @Select, @Insert, @Update, @Delete, executeQuery, jdbcTemplate, mapper.
+  Python: session.query, .filter, .objects, .raw, cursor.execute, .all()
+  Rust: query, execute, fetch, sqlx::, diesel::
+  TypeScript: .findMany, .findUnique, .raw, .query, createQueryBuilder, knex(
 
-# 循环中的查询（N+1 信号）
-grep -rn 'for\b\|forEach\|map(' --include='*.go' --include='*.java' --include='*.py' --include='*.ts' -A5 | grep -i 'find\|query\|select\|where\|fetch\|get'
+N+1 信号: for/forEach/map 循环内出现 find/query/select/where/fetch/get
 
-# 缺少 LIMIT 的查询
-grep -rn 'Find\|SELECT\|query\|\.all()' --include='*.go' --include='*.java' --include='*.py' --include='*.ts' | grep -iv 'limit\|Limit\|page\|size\|offset'
+缺 LIMIT 信号: Find/SELECT/query/.all() 结果中无 limit/Limit/page/size/offset
 
-# 批量操作
-grep -rn 'batch\|Batch\|bulk\|Bulk\|BATCH\|BULK' --include='*.go' --include='*.java' --include='*.py' --include='*.ts'
-# Go
-grep -rn 'INSERT INTO.*VALUES\|CreateInBatches\|Create.*\[\]' --include='*.go'
-# Java
-grep -rn 'saveAll\|batchInsert\|executeBatch\|BatchSqlParameterSource\|@BatchInsert' --include='*.java'
-# Python
-grep -rn 'bulk_create\|bulk_update\|execute_many\|executemany\|insert_many' --include='*.py'
-# TypeScript
-grep -rn 'createMany\|updateMany\|deleteMany\|$executeRaw' --include='*.ts'
+批量操作:
+  Go: INSERT INTO ... VALUES, CreateInBatches, Create + []
+  Java: saveAll, batchInsert, executeBatch, @BatchInsert
+  Python: bulk_create, bulk_update, execute_many, insert_many
+  TypeScript: createMany, updateMany, deleteMany
 
-# 全表操作（无 WHERE 条件）
-grep -rn 'DELETE FROM\|UPDATE.*SET\|TRUNCATE' --include='*.go' --include='*.java' --include='*.py' --include='*.ts' | grep -v 'WHERE\|where'
-
-# 循环中处理大量数据
-grep -rn 'for.*range.*items\|for.*range.*records\|for.*range.*data\|for.*in.*items\|for item in' --include='*.go' --include='*.java' --include='*.py' --include='*.ts'
+全表操作: DELETE FROM / UPDATE ... SET / TRUNCATE 无 WHERE 条件
 ```
 
 ### 检查清单
@@ -81,43 +66,35 @@ grep -rn 'for.*range.*items\|for.*range.*records\|for.*range.*data\|for.*in.*ite
 
 ### 场景推演
 
-**N+1查询场景**：假设循环100次触发101次查询，以每次查询平均 2ms 计算，当前耗时约 200ms。数据量翻 10 倍后，循环变为 1000 次，耗时约 2 秒——用户体感会从"正常"变为"明显卡顿"。如果这个接口还被其他服务调用，超时风险如何传导？
+**N+1查询**：循环100次触发101次查询，每次平均 2ms → 约 200ms。数据量翻10倍 → 1000次/2秒，用户体感从"正常"变成"明显卡顿"。如果数据库连接池只有 50 个连接，高并发下会怎样？
 
-**批量操作场景**：这段批量 INSERT 代码，单次操作的最大数据量是多少？如果业务方一次性传入 50000 条记录，数据库的 `max_allowed_packet`（默认 4MB）能承受吗？内存中构建 SQL 语句的峰值占用是多少？
+**批量操作**：单次 INSERT 50000 条记录，`max_allowed_packet`（默认 4MB）能承受吗？内存中构建 SQL 的峰值占用是多少？
 
-**缺少LIMIT场景**：这个查询在生产环境当前数据量下会返回多少行？如果有人通过接口传入一个超大范围的查询条件（如不传过滤参数），会不会一次性加载几十万行数据到内存？返回给前端的数据量是否做了截断？
+**缺 LIMIT**：如果有人不传过滤参数，一次性加载几十万行到内存？返回给前端的数据量是否做了截断？
 
-> **深挖信号**：当发现 N+1 查询或无 LIMIT 查询时，必须联动 #10（数据增长敏感性）推演——当前"还能接受"的性能，数据增长 10 倍后会变成什么？
-
-> 这个接口循环内查询用户信息，100个订单 = 101次 SQL。如果某次请求有 1000 个订单呢？数据库连接池只有 50 个连接，高并发下会怎样？
+> **深挖信号**：当发现 N+1 或无 LIMIT 查询时，必须联动 #10（数据增长敏感性）——当前"还能接受"的性能，增长10倍后会变成什么？
 
 ---
 
 ## 8. 并发与分布式安全
 
-### 搜索模式
+### 搜索关键词
 
-```bash
-# Go：锁
-grep -rn 'sync.Mutex\|sync.RWMutex\|Lock()\|RLock()\|Unlock()\|RUnlock()\|sync.Map' --include='*.go'
-# Go：goroutine
-grep -rn 'go func\|go\s\+\w\+(' --include='*.go'
-# Go：共享状态
-grep -rn 'var\s\+\w\+\s\+=' --include='*.go' | grep 'map\|slice\|[]'
+```
+锁:
+  Go: sync.Mutex, sync.RWMutex, Lock(), RLock(), Unlock(), RUnlock(), sync.Map
+  Java: synchronized, ReentrantLock, AtomicInteger, AtomicLong, ConcurrentHashMap, volatile
+  Python: threading.Lock, multiprocessing, asyncio, async def, await, concurrent.futures
+  Rust: Mutex::new, RwLock::new, Arc::new, mpsc::, spawn, tokio::spawn
 
-# Java：锁与并发
-grep -rn 'synchronized\|ReentrantLock\|AtomicInteger\|AtomicLong\|ConcurrentHashMap\|volatile' --include='*.java'
-# Java：线程池
-grep -rn 'ThreadPool\|ExecutorService\|CompletableFuture\|@Async' --include='*.java'
+Goroutine/线程:
+  Go: go func, go <func>()
+  Java: ThreadPool, ExecutorService, CompletableFuture, @Async
+  Rust: std::thread
+  TypeScript: Promise, async, await, Worker, cluster
 
-# Python：并发
-grep -rn 'threading.Lock\|multiprocessing\|asyncio\|async def\|await\|concurrent.futures' --include='*.py'
-
-# Rust：并发原语
-grep -rn 'Mutex::new\|RwLock::new\|Arc::new\|mpsc::\|spawn\|tokio::spawn\|std::thread' --include='*.rs'
-
-# TypeScript：异步
-grep -rn 'Promise\|async \|await \|Worker\|cluster' --include='*.ts'
+共享状态:
+  Go: var <name> + map/slice/[]
 ```
 
 ### 检查清单
@@ -138,40 +115,32 @@ grep -rn 'Promise\|async \|await \|Worker\|cluster' --include='*.ts'
 
 ### 场景推演
 
-**并发推演**：两个请求同时执行到这段代码，会发生什么？请具体描述竞态条件：线程 A 读到余额为 100，线程 B 也读到 100，A 扣减后写入 80，B 扣减后也写入 80——本应是 60 的余额变成了 80。这个场景在你的代码中以什么形式存在？
+**并发推演**：两个请求同时执行到"先查后改"代码：线程 A 读到余额为 100，线程 B 也读到 100，A 扣减后写入 80，B 扣减后也写入 80——本应是 60 的余额变成了 80。
 
-**锁的范围推演**：锁住的范围是否包含了网络 IO 操作（如 HTTP 调用、数据库查询）？如果一次 RPC 调用耗时 3 秒，锁就会被持有 3 秒，期间其他所有请求都在排队。这个锁粒度是否合理？
+**锁范围推演**：锁住的范围包含 HTTP 调用？一次 RPC 耗时 3 秒，锁被持有 3 秒，其他所有请求排队。100个并发 → QPS 约为 0.33。
 
-**分布式推演**：如果这个服务部署了 3 个实例，当前依赖内存中的变量/本地缓存做互斥，还有保护作用吗？两个实例上的线程各自执行 `if !exists then set`，是不是都能通过检查？需要引入分布式锁还是改用数据库层面的原子操作？
+**分布式推演**：3个实例各依赖内存变量/本地缓存做互斥，两个实例上的线程各自执行 `if !exists then set`，都能通过检查。需要分布式锁还是数据库原子操作？
 
-> **深挖信号**：当发现"先查后改"模式时，必须联动 #7（数据库性能）检查是否存在 TOCTOU——即使有索引优化，查询和更新之间的间隙仍然可能被并发请求穿透。
-
-> **场景1**：100个并发请求同时执行 `GetStock → 判断 → Deduct`，库存=10，每个请求查到的都是10，都判断通过，最终扣成负数。
->
-> **场景2**：这段代码加了锁，但锁的范围包含了 HTTP 调用。HTTP 超时 30s，锁最多持有 30s，其他99个协程全部阻塞30s。系统的 QPS 会变成多少？
+> **深挖信号**：发现"先查后改"时，联动 #7（数据库性能）检查 TOCTOU——即使有索引优化，查询和更新之间的间隙仍可能被并发请求穿透。
 
 ---
 
 ## 9. 事务边界
 
-### 搜索模式
+### 搜索关键词
 
-```bash
-# Go
-grep -rn 'Begin\|Transaction\|tx\.\|Commit\|Rollback\|WithTransaction' --include='*.go'
-# Java（Spring）
-grep -rn '@Transactional\|TransactionTemplate\|PlatformTransactionManager' --include='*.java'
-# Python（Django/SQLAlchemy）
-grep -rn 'transaction.atomic\|@transaction.atomic\|session.begin\|commit\|rollback' --include='*.py'
-# Rust
-grep -rn 'transaction\|begin\|commit\|rollback' --include='*.rs'
-# TypeScript（TypeORM/Prisma/Sequelize）
-grep -rn '\$transaction\|\.transaction\|START TRANSACTION\|BEGIN' --include='*.ts'
+```
+事务:
+  Go: Begin, Transaction, tx., Commit, Rollback, WithTransaction
+  Java: @Transactional, TransactionTemplate, PlatformTransactionManager
+  Python: transaction.atomic, @transaction.atomic, session.begin, commit, rollback
+  Rust: transaction, begin, commit, rollback
+  TypeScript: $transaction, .transaction, START TRANSACTION, BEGIN
 
-# 事务内的 IO（HTTP/RPC/MQ —— 不应在事务中）
-grep -rn 'http.Get\|http.Post\|grpc\.\|rpc\.\|\.Publish\|\.Send\|\.Call' --include='*.go'
-grep -rn 'RestTemplate\|WebClient\|FeignClient\|KafkaTemplate\|RabbitTemplate' --include='*.java'
-grep -rn 'requests\.\|aiohttp\.\|celery\.\|broker\.' --include='*.py'
+事务内的 IO（不应在事务中）:
+  Go: http.Get, http.Post, grpc., rpc., .Publish, .Send, .Call
+  Java: RestTemplate, WebClient, FeignClient, KafkaTemplate, RabbitTemplate
+  Python: requests., aiohttp., celery., broker.
 ```
 
 ### 检查清单
@@ -186,139 +155,97 @@ grep -rn 'requests\.\|aiohttp\.\|celery\.\|broker\.' --include='*.py'
 1. 找到所有事务块
 2. 逐行检查事务内操作，标记每个操作是 DB 还是 IO
 3. 如果有非 DB 操作在事务内，分析如何移出
-4. **追踪错误路径**：如果事务内第2步失败了，第1步的 DB 操作会回滚吗？Rollback 代码在哪？
+4. **追踪错误路径**：事务内第2步失败，第1步的 DB 操作会回滚吗？Rollback 代码在哪？
 5. 给出重构后的事务边界
 
 ### 场景推演
 
-**失败推演**：事务执行到第 3 步时失败了，前 2 步的数据库操作回滚了吗？如果第 3 步是发送消息到 MQ 且已经发出去了，数据库回滚后消息还在队列里——消费者会基于一条"已回滚"的数据执行业务逻辑。你有没有补偿机制来处理这种不一致？
+**失败推演**：事务执行到第 3 步失败，前 2 步回滚了吗？如果第 3 步是 MQ 消息已发送，数据库回滚后消息还在队列里——消费者基于"已回滚"数据执行逻辑。有没有补偿机制？
 
-**IO在事务中推演**：这段代码在事务里发起了一个 HTTP 调用。如果对方服务响应很慢（比如 30 秒超时），事务会持有数据库连接和行锁 30 秒。这期间其他需要操作同一行数据的请求会怎样？是被阻塞直到超时，还是能正常处理？数据库连接池够不够撑？
+**IO在事务中**：事务内 HTTP 调用，对方慢（30s超时），事务持有连接和行锁 30 秒。其他操作同一行的请求被阻塞，数据库连接池耗尽，服务雪崩。
 
-**嵌套事务推演**：这里是否存在嵌套事务（方法 A 开了事务，内部调用方法 B 也开了事务）？当内层事务 Rollback 时，外层事务是继续执行还是也回滚？Spring 的默认传播行为是 REQUIRED，内层回滚会标记整个事务为 rollback-only，外层 Commit 时会抛 `UnexpectedRollbackException`——你处理了这个异常吗？
+**嵌套事务**：方法 A 开事务，内部调方法 B 也开事务。内层 Rollback → Spring REQUIRED 传播下整个事务标记为 rollback-only，外层 Commit 抛 `UnexpectedRollbackException`——处理了吗？
 
-> **深挖信号**：当发现事务中有外部调用时，必须联动限流/重试维度思考——外部调用失败后事务回滚，但如果有重试机制，重试时事务会重新执行，可能导致部分操作重复执行（如已发送的消息再次发送）。
-
-> **场景1**：事务内先 INSERT 订单，再 RPC 调用支付服务。RPC 成功了，但 Commit 前数据库挂了，事务回滚。结果：支付已扣款，但订单不存在。用户钱没了，订单也没了。
->
-> **场景2**：事务内包含一个 HTTP 调用，平均耗时 200ms，最慢 5s。事务持有行锁期间，其他需要操作同一行的事务全部阻塞。100个并发请求排队等锁，数据库连接池耗尽，服务雪崩。
+> **深挖信号**：事务中有外部调用时，联动限流/重试维度——外部调用失败→事务回滚→重试→部分操作重复执行（如消息再次发送）。
 
 ---
 
 ## 10. 数据增长敏感性
 
-> **核心关注点**：业务数据增长可能造成的系统隐患、崩溃、性能下降，以及是否需要算法优化。
-> 审查时要带着"数据量10倍、100倍后会怎样"的思维去审视每一段代码。
+### 搜索关键词
 
-### 搜索模式
-
-```bash
-# 通用：可能增长的集合
-grep -rn 'append(\|push(\|\.add(\|insert(' --include='*.go' --include='*.java' --include='*.py' --include='*.rs' --include='*.ts'
-# 通用：map 定义
-grep -rn 'map\[.*\]\|Map<\|dict(\|HashMap\|{\w\+:}' --include='*.go' --include='*.java' --include='*.py' --include='*.ts'
-
-# 数值类型
-grep -rn 'int32\|int16\|int\b\|uint\b\|Integer\|Long\|float\b\|Float' --include='*.go' --include='*.java' --include='*.py' --include='*.rs' --include='*.ts'
-
-# 内存中排序/聚合（大数据量下性能杀手）
-grep -rn 'sort\.\|Sort\|ORDER BY\|GroupBy\|group by\|GROUP BY\|Count\|count(' --include='*.go' --include='*.java' --include='*.py' --include='*.ts'
-
-# 嵌套循环（O(n²) 信号）
-grep -rn 'for.*range\|for.*in\|for.*each' --include='*.go' --include='*.java' --include='*.py' --include='*.ts' -A3 | grep 'for.*range\|for.*in\|for.*each'
-
-# 全量数据导出/下载
-grep -rn 'export\|Export\|download\|Download\|csv\|Excel\|xlsx' --include='*.go' --include='*.java' --include='*.py' --include='*.ts'
+```
+可增长集合: append(, push(, .add(, insert(, map[], Map<, dict(, HashMap
+数值类型: int32, int16, int, uint, Integer, Long, float, Float
+内存排序/聚合: sort., Sort, ORDER BY, GroupBy, GROUP BY, Count, count(
+嵌套循环信号: for...range/for...in/for...each 内嵌套 for...range/for...in/for...each
+全量导出: export, Export, download, Download, csv, Excel, xlsx
 ```
 
 ### 检查清单
 
 #### 内存维度
 - [ ] 是否有把全表/大量数据加载到内存的操作（当前量小没问题，增长后 OOM）
-- [ ] 集合（slice/list/map）是否会随业务增长无限膨胀，是否有清理/淘汰机制
-- [ ] 是否在内存中做了本该由数据库完成的排序/聚合（数据量大时内存爆炸）
+- [ ] 集合是否会随业务增长无限膨胀，是否有清理/淘汰机制
+- [ ] 是否在内存中做了本该由数据库完成的排序/聚合
 - [ ] 导出/下载功能是否一次性加载全部数据（应流式输出）
 
 #### 数值维度
-- [ ] 自增ID、计数器等数值类型是否够用（int → int64 溢出？uint 翻转？）
+- [ ] 自增ID、计数器等数值类型是否够用（int → int64 溢出？）
 - [ ] 金额字段是否使用了 float（精度丢失 + 金额增长后精度放大）
 - [ ] 超时时间、重试次数等是否硬编码了不合理的固定值
 
 #### 查询性能维度
-- [ ] 分页查询是否使用 cursor 而非 offset（offset 在数据量大时越往后越慢）
-- [ ] 是否存在嵌套循环查询（O(n) 次查询外层再 O(m) 次查询内层 = O(n*m)）
-- [ ] JOIN 的表数据量增长后是否还能在合理时间内返回
+- [ ] 分页查询是否使用 cursor 而非 offset（offset 大数据量越往后越慢）
+- [ ] 是否存在嵌套循环查询 O(n*m)
+- [ ] JOIN 的表增长后是否还能在合理时间返回
 - [ ] 是否有索引覆盖不了的模糊查询（LIKE '%xxx%' 全表扫描）
 
 #### 存储维度
-- [ ] 日志表/记录表是否会无限增长（是否需要定期归档/清理策略）
+- [ ] 日志表/记录表是否会无限增长（是否需要归档/清理策略）
 - [ ] 文件/附件存储是否会占满磁盘
-- [ ] 消息队列积压场景：消费速度跟不上生产速度会怎样
+- [ ] 消息队列积压：消费速度跟不上生产速度会怎样
 
 #### 算法维度
-- [ ] 是否有 O(n²) 或更高复杂度的操作（嵌套循环、全量对比）
+- [ ] 是否有 O(n²) 或更高复杂度的操作
 - [ ] 是否可以用哈希表优化查找（O(n) → O(1)）
 - [ ] 是否可以用索引/排序+二分优化范围查询
 - [ ] 是否有重复计算可以缓存结果
 
 ### 深挖方法
 
-对每段涉及数据处理的代码，按以下步骤推演：
-
-1. **估算增长速度**：这个表/集合/文件每月增长多少？一年后多少？三年后多少？
-
-2. **推演崩溃场景**：
-   - 数据量 10 倍后，这个查询/操作会怎样？（秒级？分钟级？超时？OOM？）
-   - 数据量 100 倍后呢？
-   - 是否存在某个阈值会导致系统突然崩溃（如内存耗尽、磁盘写满、连接池耗尽）
-
-3. **分析根因**：
-   - 是数据量太大导致查询慢？→ 需要索引优化 / 分库分表 / 读写分离
-   - 是内存中处理的数据太多？→ 需要流式处理 / 分批处理 / 下推到数据库
-   - 是算法复杂度太高？→ 需要换算法（哈希、二分、布隆过滤器等）
-   - 是单表数据量太大？→ 需要分表 / 归档 / 冷热分离
-
-4. **给出具体方案**：
-   - 分页优化：offset → cursor-based（基于有序唯一键）
-   - 内存控制：全量加载 → 流式处理 / 固定大小 buffer / 分批处理
-   - 算法优化：嵌套循环 O(n²) → 哈希表 O(n)、排序+二分 O(n log n)
-   - 存储优化：单表 → 按时间/ID分表、冷数据归档、定期清理策略
-   - 数值安全：int → int64、float → decimal
+1. **估算增长速度**：这个表/集合每月增长多少？一年后？三年后？
+2. **推演崩溃场景**：10倍后怎样？100倍后呢？是否存在崩溃阈值（OOM、磁盘满、连接池耗尽）？
+3. **分析根因**：查询慢？→ 索引/分库分表；内存太多？→ 流式/分批/下推DB；算法太慢？→ 换算法；单表太大？→ 分表/归档
+4. **给出方案**：offset → cursor-based；全量 → 流式/分批；O(n²) → HashMap O(n)；int → int64；float → decimal
 
 ### 场景推演
 
-**增长推演**：这个核心业务表每月增长多少行？假设月增 10 万行，一年后 120 万行，三年后 360 万行。当前这条查询在 10 万行时耗时 50ms，在 360 万行时由于失去了索引选择性（如 status 字段只有 3 种值，选择性太低），会不会退化为全表扫描？到那时接口超时了你怎么发现？
+**增长推演**：核心表月增 10 万行，一年 120 万，三年 360 万。当前查询 50ms，360万行时如果 status 字段只有 3 种值（选择性低），会退化为全表扫描吗？
 
-**OOM推演**：这段代码把查询结果全量加载到一个 `List` 里。当前每次加载 1000 条，每条 2KB，占用约 2MB。如果数据增长 100 倍到 10 万条，就是 200MB。如果是导出场景同时有 5 个用户并发导出，就是 1GB——会触发 OOM 吗？JVM/Go runtime 的内存上限是多少？
+**OOM推演**：查询全量加载到 List，当前 1000 条×2KB=2MB。增长100倍→200MB。5个用户并发导出→1GB。JVM/Go runtime 内存上限是多少？
 
-**算法推演**：这里的嵌套循环是 O(n²) 复杂度。当 n=100 时耗时 10ms（10000 次操作），当 n 增长到 10000 时，操作次数变成 1 亿次，耗时约 100 秒——用户体验从"瞬间完成"变成"直接超时"。有没有考虑用 HashMap 把内层查找从 O(n) 降到 O(1)？
+**算法推演**：O(n²) 嵌套循环，n=100 时 10ms/10000次操作，n=10000 时 1亿次操作/约100秒。用 HashMap 把内层 O(n) 降到 O(1)？
 
-> **深挖信号**：当发现全量加载或 O(n²) 算法时，必须联动 #11（长时间运行稳定性）——数据持续增长但系统没有弹性扩容或淘汰机制，最终会以 OOM 或超时的方式"突然"崩溃。
-
-> **场景**：这个表每月增长 10 万条，一年后 120 万条，三年后 360 万条。
-> - 10倍后（1200万条）：这个 `SELECT * FROM orders WHERE user_id = ?` 还能在 100ms 内返回吗？user_id 有索引吗？
-> - 100倍后（1.2亿条）：这个 `int32` 的自增ID还够用吗？（int32 最大约 21 亿）
-> - 崩溃阈值：是否存在某个数据量级会导致系统突然崩溃？（OOM、磁盘写满、连接池耗尽）
+> **深挖信号**：发现全量加载或 O(n²) 时，联动 #11（长时间运行稳定性）——数据持续增长无弹性扩容，最终 OOM 或超时"突然"崩溃。
 
 ---
 
 ## 11. 长时间运行稳定性
 
-### 搜索模式
+### 搜索关键词
 
-```bash
-# 定时任务
-grep -rn 'time.Ticker\|time.Sleep\|cron\|Schedule\|ticker\|interval' --include='*.go'
-grep -rn '@Scheduled\|ScheduledExecutorService\|Timer\|cron' --include='*.java'
-grep -rn 'schedule\|cron\|celery.beat\|APScheduler\|@periodic_task' --include='*.py'
-grep -rn 'tokio::time::interval\|std::thread::sleep\|cron' --include='*.rs'
+```
+定时任务:
+  Go: time.Ticker, time.Sleep, cron, Schedule, ticker, interval
+  Java: @Scheduled, ScheduledExecutorService, Timer, cron
+  Python: schedule, cron, celery.beat, APScheduler, @periodic_task
+  Rust: tokio::time::interval, std::thread::sleep
 
-# 连接池
-grep -rn 'sql.Open\|SetMaxOpenConns\|SetMaxIdleConns\|ConnMaxLifetime\|redis.NewClient' --include='*.go'
-grep -rn 'HikariCP\|DataSource\|ConnectionPool\|ThreadPoolExecutor\|maxPoolSize' --include='*.java'
-grep -rn 'pool\|Pool\|create_engine\|pool_size\|max_overflow' --include='*.py'
-
-# 注意：缓存相关搜索在 domain-data-ops.md #22 缓存一致性
+连接池:
+  Go: sql.Open, SetMaxOpenConns, SetMaxIdleConns, ConnMaxLifetime, redis.NewClient
+  Java: HikariCP, DataSource, ConnectionPool, ThreadPoolExecutor, maxPoolSize
+  Python: pool, create_engine, pool_size, max_overflow
 ```
 
 ### 检查清单
@@ -331,48 +258,36 @@ grep -rn 'pool\|Pool\|create_engine\|pool_size\|max_overflow' --include='*.py'
 ### 深挖方法
 1. 对定时任务：计算单次执行最长时间，对比间隔
 2. 对连接池：检查是否配置了 maxSize、maxIdle、lifetime
-3. **追踪错误路径**：任务 panic 了会怎样？是静默失败还是告警？
+3. **追踪错误路径**：任务 panic 了会怎样？静默失败还是告警？
 4. 给出具体配置建议
 
 ### 场景推演
 
-**任务堆积推演**：这个定时任务配置了每 5 分钟执行一次，但单次执行最长时间是多少？如果某次执行因为数据量突增而耗时 8 分钟，超过了间隔时间，系统是会启动第二个实例并发执行（导致重复处理），还是会跳过本次调度？并发执行时数据会被重复处理吗？
+**任务堆积**：定时任务每 5 分钟执行，但单次最慢 8 分钟。超过间隔后启动第二个实例并发执行（重复处理），还是跳过调度？并发执行时数据会被重复处理吗？
 
-**连接泄漏推演**：如果数据库连接池的最大连接数是 20，而某个慢查询占住了 15 个连接长达 30 秒，新来的请求需要获取连接时会怎样？是阻塞等待（导致请求排队雪崩），还是立即返回超时错误（用户体验差）？连接池有没有配置获取连接的超时时间和监控告警？
+**连接泄漏**：连接池最大 20，慢查询占 15 个 30 秒。新请求阻塞等待（排队雪崩）还是立即返回超时错误？有没有获取连接超时和监控告警？
 
-**内存增长推演**：这个服务启动时内存占用 200MB，运行一周后增长到了 2GB——你能在日志或监控中看到内存的持续增长吗？代码中有没有不断 `append` 到切片/列表但从不清理的数据结构？有没有只在初始化时创建但永远不会被回收的全局变量？长时间运行的 goroutine/thread 是否有退出机制？
+**内存增长**：启动 200MB，一周后 2GB——日志或监控能看到增长吗？有没有只 append 不清理的切片/列表？有没有永不回收的全局变量？长时间运行的 goroutine 有退出机制吗？
 
-> **深挖信号**：当发现缓存无淘汰策略或连接池无上限时，必须联动 #10（数据增长敏感性）——缓存条目随业务增长无限膨胀，连接池在高并发下耗尽，这些都是"温水煮青蛙"式的问题，平时看不出，流量突增时瞬间崩溃。
-
-> **场景1**：这个定时任务每分钟执行一次，但单次执行最慢要 3 分钟。任务会堆积吗？如果上一个还没跑完，下一个又启动了，会怎样？数据会被重复处理吗？
->
-> **场景2**：这个 Redis 连接池没配 `ConnMaxLifetime`。Redis 服务端 30 分钟断开空闲连接，但客户端不知道，还在用已断开的连接。会怎样？
+> **深挖信号**：缓存无淘汰策略或连接池无上限时，联动 #10（数据增长）——缓存条目无限膨胀、连接池高并发耗尽，"温水煮青蛙"，流量突增时瞬间崩溃。
 
 ---
 
 ## 12. 可观测性（日志）
 
-### 搜索模式
+### 搜索关键词
 
-```bash
-# Go
-grep -rn 'log\.\|logger\.\|slog\.\|Infof\|Errorf\|Warnf\|Debugf\|printf\|Println' --include='*.go'
-# Java
-grep -rn 'log\.\|logger\.\|Logger\|log\.info\|log\.error\|log\.warn\|log\.debug\|SLF4J\|Logback' --include='*.java'
-# Python
-grep -rn 'logging\.\|logger\.\|log\.\|print(' --include='*.py'
-# Rust
-grep -rn 'info!\|error!\|warn!\|debug!\|tracing::\|log::' --include='*.rs'
-# TypeScript
-grep -rn 'console\.\|logger\.\|winston\|pino\|bunyan' --include='*.ts'
+```
+日志框架:
+  Go: log., logger., slog., Infof, Errorf, Warnf, Debugf, printf, Println
+  Java: log., logger., Logger, log.info, log.error, log.warn, log.debug, SLF4J
+  Python: logging., logger., log., print(
+  Rust: info!, error!, warn!, debug!, tracing::, log::
+  TypeScript: console., logger., winston, pino, bunyan
 
-# 错误处理但无日志（所有语言）
-grep -rn 'if err\|catch (\|except\|Err(' --include='*.go' --include='*.java' --include='*.py' --include='*.rs' -A2 | grep 'return\|throw\|raise' | grep -v 'log\|logger\|logging'
+错误无日志: if err / catch ( / except / Err( → return/throw/raise 但无 log/logger
 
-# 关键业务操作
-grep -rn 'pay\|charge\|deduct\|refund\|transfer\|create.*order\|update.*status\|delete.*account' --include='*.go' --include='*.java' --include='*.py' --include='*.rs' --include='*.ts'
-
-# 注意：链路追踪（traceID）相关搜索在 domain-data-ops.md #24
+关键业务: pay, charge, deduct, refund, transfer, create.*order, update.*status, delete.*account
 ```
 
 ### 检查清单
@@ -392,17 +307,13 @@ grep -rn 'pay\|charge\|deduct\|refund\|transfer\|create.*order\|update.*status\|
 
 ### 场景推演
 
-**故障排查推演**：假设这个支付功能在线上出了问题——用户说"扣了钱但订单没创建"。你打开日志，能看到什么？能追踪到这个用户这笔交易从请求进入到最终结果的完整链路吗？日志里有 requestID 可以串联上下游吗？如果日志只有 `"payment failed"` 没有订单号和用户ID，你怎么定位是哪笔交易出了问题？
+**故障排查**：凌晨3点用户反馈"支付失败"。日志里搜到的都是 `log.Println("error")`，没有订单号、用户ID、错误原因。怎么定位问题？如果日志只有 `"payment failed"` 没有 requestID，怎么追踪完整链路？
 
-**敏感信息推演**：这段日志代码会打印完整的请求参数吗？请求体中是否包含密码、token、身份证号、银行卡号？谁有权限查看这些日志（开发、运维、外包）？如果日志被采集到了 ELK/Splunk 等集中式平台，敏感信息是否已经脱敏？
+**敏感信息**：`log.Printf("login failed: user=%s password=%s", user, password)` — 密码打到了日志，被 ELK 收集，所有有 ELK 权限的人都能看到。什么级别的安全事件？
 
-**日志风暴推演**：如果这个 Error 分支在流量高峰期每秒触发 1000 次（比如下游服务超时），日志系统扛得住吗？每条日志 500 字节，每秒写入 500KB，一分钟 30MB——如果持续 10 分钟，磁盘空间够吗？有没有对高频日志做限速（rate limiting）或采样（sampling）？WARN 级别的日志会不会因为太频繁而被直接忽略？
+**日志风暴**：Error 分支高峰期每秒触发 1000 次，每条 500B → 每秒 500KB → 持续10分钟 300MB。磁盘够吗？有没有限速/采样？
 
-> **深挖信号**：当发现错误处理路径没有日志时，必须联动资源释放路径检查——如果 `defer Close()` 或 `finally` 块中的资源释放失败但没有日志，你会在线上完全无感知地泄漏连接、文件句柄或内存，直到系统崩溃才被动发现。
-
-> **场景1**：凌晨3点用户反馈"支付失败"。你打开日志，搜索到的都是 `log.Println("error")`，没有任何订单号、用户ID、错误原因。你怎么定位问题？
->
-> **场景2**：生产环境出了 bug，日志里有 `log.Printf("login failed: user=%s password=%s", user, password)`。密码被打到日志里了，日志被 ELK 收集，所有有 ELK 权限的人都能看到。这是一个什么级别的安全事件？
+> **深挖信号**：错误路径无日志时，联动资源释放路径检查——`defer Close()` 失败无日志，线上无感知地泄漏连接/文件句柄/内存，直到系统崩溃。
 
 ---
 
