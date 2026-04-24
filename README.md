@@ -24,16 +24,16 @@ A personal collection of Agent Skills for Claude Code, Cursor, Kimi Code CLI, Ge
 
 ```bash
 # Install all skills
-npx skills add <your-username>/skills -y
+npx skills add loongxjin/skills -y
 
 # Install a specific skill
-npx skills add <your-username>/skills --skill backend-code-review -y
+npx skills add loongxjin/skills --skill backend-code-review -y
 
 # Install globally
-npx skills add <your-username>/skills --skill backend-code-review -y -g
+npx skills add loongxjin/skills --skill backend-code-review -y -g
 
 # Install to specific agents
-npx skills add <your-username>/skills --skill backend-code-review -a claude-code -a cursor
+npx skills add loongxjin/skills --skill backend-code-review -a claude-code -a cursor
 ```
 
 ### Option 2: Manual Installation
