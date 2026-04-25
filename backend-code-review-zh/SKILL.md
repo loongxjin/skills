@@ -1,5 +1,5 @@
 ---
-name: backend-code-review
+name: backend-code-review-zh
 description: |
   后端代码质量审查技能。基于资深后端工程实践，从6大领域29个维度系统深入审查后端代码质量。
   Use when reviewing, auditing, or evaluating backend code quality — including Go, Java, Python, Rust, C++, or any backend language.

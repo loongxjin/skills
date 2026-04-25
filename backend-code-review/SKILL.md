@@ -1,5 +1,5 @@
 ---
-name: backend-code-review-en
+name: backend-code-review
 description: |
   Backend code quality review skill. Based on senior backend engineering practices, systematically and thoroughly reviews backend code quality across 6 domains and 29 dimensions.
   Use when reviewing, auditing, or evaluating backend code quality — including Go, Java, Python, Rust, C++, or any backend language.
