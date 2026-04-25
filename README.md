@@ -1,6 +1,6 @@
 # Agent Skills 🛠️
 
-English | [中文](./README.zh.md)
+English | [中文](./README-zh.md)
 
 A personal collection of Agent Skills for Claude Code, Cursor, Kimi Code CLI, Gemini CLI, and other AI coding assistants.
 

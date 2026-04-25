@@ -1,6 +1,6 @@
 # Backend Engineer Thinking Framework
 
-English | [中文](./backend_thinking.md)
+English | [中文](./backend_thinking-zh.md)
 
 > An engineer's level is not determined by how much code they write, but by how much they think before writing code.
 > This document is not dogma, but a thinking checklist — a self-check guide for every time you write code, design systems, or troubleshoot issues.
