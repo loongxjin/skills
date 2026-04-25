@@ -25,16 +25,19 @@
 
 ```bash
 # 安装全部技能
-npx skills add <your-username>/skills -y
+npx skills add loongxjin/skills -y
 
 # 安装指定技能
-npx skills add <your-username>/skills --skill backend-code-review -y
+npx skills add loongxjin/skills --skill backend-code-review-zh -y
+npx skills add loongxjin/skills --skill backend-code-review -y
 
 # 全局安装
-npx skills add <your-username>/skills --skill backend-code-review -y -g
+npx skills add loongxjin/skills --skill backend-code-review-zh -y -g
+npx skills add loongxjin/skills --skill backend-code-review -y -g
 
 # 安装到指定 Agent
-npx skills add <your-username>/skills --skill backend-code-review -a claude-code -a cursor
+npx skills add loongxjin/skills --skill backend-code-review-zh -a claude-code -a cursor
+npx skills add loongxjin/skills --skill backend-code-review -a claude-code -a cursor
 ```
 
 ### 方式二：手动安装

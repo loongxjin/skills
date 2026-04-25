@@ -30,12 +30,15 @@ npx skills add loongxjin/skills -y
 
 # Install a specific skill
 npx skills add loongxjin/skills --skill backend-code-review -y
+npx skills add loongxjin/skills --skill backend-code-review-zh -y
 
 # Install globally
 npx skills add loongxjin/skills --skill backend-code-review -y -g
+npx skills add loongxjin/skills --skill backend-code-review-zh -y -g
 
 # Install to specific agents
 npx skills add loongxjin/skills --skill backend-code-review -a claude-code -a cursor
+npx skills add loongxjin/skills --skill backend-code-review-zh -a claude-code -a cursor
 ```
 
 ### Option 2: Manual Installation
