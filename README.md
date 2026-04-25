@@ -9,6 +9,8 @@ A personal collection of Agent Skills for Claude Code, Cursor, Kimi Code CLI, Ge
 | Skill | Description |
 |-------|-------------|
 | [backend-code-review](./backend-code-review/) | Backend code review based on a 9-dimension thinking framework, covering code quality, architecture, database, concurrency, reliability, performance, security, observability, and engineering practices |
+| [backend-code-review-zh](./backend-code-review-zh/) | Chinese version of backend code review skill — systematically reviews backend code quality across 6 domains and 29 dimensions |
+
 
 > Continuously updated. More skills coming soon.
 
@@ -16,7 +18,7 @@ A personal collection of Agent Skills for Claude Code, Cursor, Kimi Code CLI, Ge
 
 | Document | Description |
 |----------|-------------|
-| [Backend Engineer Thinking Framework](./backend_thinking.en.md) | A comprehensive 9-dimension thinking checklist for backend engineers — covering code quality, architecture, database, concurrency, reliability, performance, security, observability, and engineering practices |
+| [Backend Engineer Thinking Framework](./backend_thinking.md) | A comprehensive 9-dimension thinking checklist for backend engineers — covering code quality, architecture, database, concurrency, reliability, performance, security, observability, and engineering practices |
 
 ## Installation
 

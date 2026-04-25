@@ -1,70 +1,70 @@
-# 后端工程师思维框架
+# Backend Engineer Thinking Framework
 
-[English](./backend_thinking.en.md) | 中文
+English | [中文](./backend_thinking.md)
 
-> 工程师的水平，不取决于写了多少代码，而取决于在写代码之前想了多少。
-> 这份文档不是教条，而是思考清单——每次写代码、做设计、排查问题时的自检指南。
-
----
-
-## 目录
-
-- [一、代码质量：写给人看的艺术](#一代码质量写给人看的艺术)
-- [二、架构设计：让系统可持续发展](#二架构设计让系统可持续发展)
-- [三、数据库与存储：数据是核心资产](#三数据库与存储数据是核心资产)
-- [四、并发与分布式：复杂性之源](#四并发与分布式复杂性之源)
-- [五、可靠性工程：让系统在逆境中存活](#五可靠性工程让系统在逆境中存活)
-- [六、性能与可扩展性：应对增长的挑战](#六性能与可扩展性应对增长的挑战)
-- [七、安全防御：不信任一切外部输入](#七安全防御不信任一切外部输入)
-- [八、可观测性与运维：让系统透明可理解](#八可观测性与运维让系统透明可理解)
-- [九、工程实践与团队协作](#九工程实践与团队协作)
-- [附录：自检清单速查表](#附录自检清单速查表)
+> An engineer's level is not determined by how much code they write, but by how much they think before writing code.
+> This document is not dogma, but a thinking checklist — a self-check guide for every time you write code, design systems, or troubleshoot issues.
 
 ---
 
-## 一、代码质量：写给人看的艺术
+## Table of Contents
 
-> 代码被阅读的次数远多于被编写的次数。好的代码应该像好的文章——读者能快速理解作者的意图。
+- [I. Code Quality: The Art of Writing for Humans](#i-code-quality-the-art-of-writing-for-humans)
+- [II. Architecture Design: Making Systems Sustainable](#ii-architecture-design-making-systems-sustainable)
+- [III. Database & Storage: Data Is the Core Asset](#iii-database--storage-data-is-the-core-asset)
+- [IV. Concurrency & Distributed Systems: The Source of Complexity](#iv-concurrency--distributed-systems-the-source-of-complexity)
+- [V. Reliability Engineering: Keeping Systems Alive Under Adversity](#v-reliability-engineering-keeping-systems-alive-under-adversity)
+- [VI. Performance & Scalability: Meeting the Challenge of Growth](#vi-performance--scalability-meeting-the-challenge-of-growth)
+- [VII. Security Defense: Trust No External Input](#vii-security-defense-trust-no-external-input)
+- [VIII. Observability & Operations: Making Systems Transparent and Understandable](#viii-observability--operations-making-systems-transparent-and-understandable)
+- [IX. Engineering Practices & Team Collaboration](#ix-engineering-practices--team-collaboration)
+- [Appendix: Quick Self-Check Checklist](#appendix-quick-self-check-checklist)
 
-### 1.1 命名即文档
+---
 
-**原则：名字应该准确传达意图，消除歧义。**
+## I. Code Quality: The Art of Writing for Humans
 
-| 类型 | 反模式 ❌ | 正确示范 ✅ | 说明 |
-|------|----------|------------|------|
-| 变量 | `d`, `data`, `tmp` | `elapsedDays`, `userData`, `tmpFileHandle` | 避免无意义缩写，描述"是什么" |
-| 函数 | `process()`, `handle()` | `validateUserPermission()`, `calculateOrderTotal()` | 动词开头，描述"做什么" |
-| 类名 | `Manager`, `Util` | `PaymentProcessor`, `OrderRepository` | 名词，描述"是什么角色" |
-| 常量 | `3.14`, `60` | `MAX_RETRY_COUNT`, `CACHE_TTL_SECONDS` | 用命名代替注释 |
-| 文件名 | `util.go`, `helper.py` | `payment_processor.go`, `order_repository.py` | 文件名反映模块职责 |
+> Code is read far more often than it is written. Good code should be like a good article — the reader can quickly understand the author's intent.
 
-**深度思考：**
-- 命名的长度应与其作用域成正比：局部变量可以短（如循环变量 `i`），全局/导出的名字必须长且清晰
-- 布尔变量用 `is/has/can/should` 前缀：`isAuthenticated`, `hasPermission`, `canRetry`
-- 避免双关命名：一个名字只表达一个含义，不要在不同上下文复用相同名字
+### 1.1 Naming Is Documentation
 
-### 1.2 函数设计原则
+**Principle: Names should accurately convey intent and eliminate ambiguity.**
 
-**函数应该短小、专注、可预测。**
+| Type | Anti-pattern ❌ | Correct Example ✅ | Explanation |
+|------|----------------|-------------------|-------------|
+| Variable | `d`, `data`, `tmp` | `elapsedDays`, `userData`, `tmpFileHandle` | Avoid meaningless abbreviations; describe "what it is" |
+| Function | `process()`, `handle()` | `validateUserPermission()`, `calculateOrderTotal()` | Start with a verb; describe "what it does" |
+| Class | `Manager`, `Util` | `PaymentProcessor`, `OrderRepository` | Noun; describe "what role it plays" |
+| Constant | `3.14`, `60` | `MAX_RETRY_COUNT`, `CACHE_TTL_SECONDS` | Use names instead of comments |
+| Filename | `util.go`, `helper.py` | `payment_processor.go`, `order_repository.py` | Filename reflects module responsibility |
+
+**Deep Thinking:**
+- Naming length should be proportional to its scope: local variables can be short (e.g., loop variable `i`), while global/exported names must be long and clear
+- Boolean variables use `is/has/can/should` prefixes: `isAuthenticated`, `hasPermission`, `canRetry`
+- Avoid pun naming: one name should express only one meaning; don't reuse the same name in different contexts
+
+### 1.2 Function Design Principles
+
+**Functions should be short, focused, and predictable.**
 
 ```
-理想函数的特征：
-├── 长度：20 行以内（极端复杂逻辑不超过 50 行）
-├── 参数：0-2 个最佳，3 个是上限，超过则封装为结构体
-├── 职责：只做一件事，函数名描述的就是它做的全部
-├── 层次：同一函数内不混合不同层次的抽象
-└── 副作用：无副作用最理想；有则必须在函数名和注释中体现
+Characteristics of an ideal function:
+├── Length: Within 20 lines (extremely complex logic should not exceed 50 lines)
+├── Parameters: 0-2 is best, 3 is the upper limit; beyond that, encapsulate into a struct
+├── Responsibility: Does only one thing; the function name describes everything it does
+├── Level: Does not mix different levels of abstraction within the same function
+└── Side effects: Ideally none; if present, must be reflected in the function name and comments
 ```
 
-**提前返回，减少嵌套（Guard Clauses 模式）：**
+**Early returns, reduce nesting (Guard Clauses pattern):**
 
 ```go
-// ❌ 箭头型代码，难以阅读
+// ❌ Arrow-shaped code, hard to read
 func ProcessOrder(order *Order) error {
     if order != nil {
         if order.IsValid() {
             if order.HasStock() {
-                // 真正的业务逻辑，被埋在第三层
+                // Real business logic buried at the third level
                 return doProcess(order)
             } else {
                 return errors.New("out of stock")
@@ -77,7 +77,7 @@ func ProcessOrder(order *Order) error {
     }
 }
 
-// ✅ 卫语句模式，错误提前返回，主线逻辑在最外层
+// ✅ Guard clause pattern: errors return early, main logic stays at the outermost level
 func ProcessOrder(order *Order) error {
     if order == nil {
         return errors.New("nil order")
@@ -88,56 +88,56 @@ func ProcessOrder(order *Order) error {
     if !order.HasStock() {
         return errors.New("out of stock")
     }
-    // 主线业务逻辑，清晰可见
+    // Main business logic, clearly visible
     return doProcess(order)
 }
 ```
 
-### 1.3 消除魔法值
+### 1.3 Eliminate Magic Values
 
-**原则：代码中不应出现未经解释的字面量。**
+**Principle: No unexplained literals should appear in code.**
 
 ```go
-// ❌ 魔法数字，读者无法理解含义
+// ❌ Magic numbers: readers cannot understand their meaning
 if user.Status == 3 {
     sendEmail(user)
 }
 
-// ✅ 枚举/常量，自解释
+// ✅ Enum/constant, self-explanatory
 if user.Status == model.UserStatusActive {
     sendWelcomeEmail(user)
 }
 
-// ✅ 更好的方式：使用方法封装意图
+// ✅ Better approach: use a method to encapsulate intent
 if user.IsActive() {
     sendWelcomeEmail(user)
 }
 ```
 
-**适用场景：**
-- 业务状态码 → 枚举（Enum/Iota）
-- 配置阈值 → 命名常量或配置项
-- 错误码 → 带语义的错误类型
-- 超时时间、重试次数 → 结构化配置
+**Applicable Scenarios:**
+- Business status codes → Enum (Enum/Iota)
+- Configuration thresholds → Named constants or configuration items
+- Error codes → Error types with semantics
+- Timeout values, retry counts → Structured configuration
 
-### 1.4 重复代码是负债
+### 1.4 Duplicated Code Is Debt
 
-**原则：DRY（Don't Repeat Yourself），但不要过度抽象。**
+**Principle: DRY (Don't Repeat Yourself), but don't over-abstract.**
 
-判断标准：
-- **三法则**：复制第三次时，必须重构
-- 抽取时优先考虑是否改变了语义——两个看似相同的代码片段如果在不同业务语境下可能独立变化，则不宜强行合并
-- 优先用组合而非继承来复用代码
+Judgment criteria:
+- **Rule of Three**: When copied for the third time, it must be refactored
+- When extracting, first consider whether semantics have changed — two seemingly identical code fragments that may change independently in different business contexts should not be forcibly merged
+- Prefer composition over inheritance for code reuse
 
-### 1.5 日志是排障的生命线
+### 1.5 Logs Are the Lifeline of Troubleshooting
 
-**原则：关键路径必须有日志，且日志必须包含足够定位问题的信息。**
+**Principle: Critical paths must have logs, and logs must contain enough information to locate problems.**
 
 ```go
-// ❌ 无用日志：出了问题完全无法定位
+// ❌ Useless log: completely unable to locate issues when problems occur
 log.Error("process failed")
 
-// ✅ 有价值的日志：包含上下文、关键数据和错误原因
+// ✅ Valuable log: includes context, key data, and error reasons
 log.Error("order payment callback failed",
     zap.String("order_id", orderID),
     zap.String("channel", paymentChannel),
@@ -146,296 +146,296 @@ log.Error("order payment callback failed",
     zap.Error(err))
 ```
 
-**日志分级策略：**
+**Log Level Strategy:**
 
-| 级别 | 何时使用 | 示例 |
-|------|---------|------|
-| DEBUG | 开发调试期间，生产环境通常关闭 | 函数入参、中间变量 |
-| INFO | 关键业务流程节点 | 订单创建成功、支付完成 |
-| WARN | 可恢复的异常，需要关注 | 重试成功、降级触发、慢查询 |
-| ERROR | 影响业务的错误，需要介入 | 外部服务调用失败、数据不一致 |
+| Level | When to Use | Examples |
+|-------|------------|----------|
+| DEBUG | During development debugging; usually disabled in production | Function parameters, intermediate variables |
+| INFO | Key business process nodes | Order created successfully, payment completed |
+| WARN | Recoverable anomalies that need attention | Retry succeeded, degradation triggered, slow query |
+| ERROR | Business-impacting errors that require intervention | External service call failed, data inconsistency |
 
-**日志纪律：**
-- 禁止在循环中打 INFO 及以上级别的日志（量大导致 IO 瓶颈和存储爆炸）
-- 敏感信息脱敏：密码、Token、身份证号、手机号
-- 结构化日志优于格式化字符串，便于日志平台检索
+**Log Discipline:**
+- Prohibit logging at INFO level or above inside loops (high volume leads to IO bottlenecks and storage explosion)
+- Sensitive information desensitization: passwords, tokens, ID numbers, phone numbers
+- Structured logs are better than formatted strings, facilitating log platform searches
 
 ---
 
-## 二、架构设计：让系统可持续发展
+## II. Architecture Design: Making Systems Sustainable
 
-> 好的架构让添加新功能容易，让犯错的成本变低。
+> Good architecture makes adding new features easy and reduces the cost of making mistakes.
 
-### 2.1 分层与职责边界
+### 2.1 Layering and Responsibility Boundaries
 
 ```
-经典三层架构（每层有明确的职责边界）：
+Classic three-layer architecture (each layer has clear responsibility boundaries):
 
 ┌─────────────────────────────────┐
-│  Controller / Handler 层        │  ← 参数校验、权限校验、协议转换
-│  （入口层：接收入出，不做业务）    │
+│  Controller / Handler Layer     │  ← Parameter validation, permission check, protocol conversion
+│  (Entry layer: receive in/out, no business logic) │
 ├─────────────────────────────────┤
-│  Service / Domain 层            │  ← 核心业务逻辑、编排、事务管理
-│  （核心层：业务规则，不关心协议）   │
+│  Service / Domain Layer         │  ← Core business logic, orchestration, transaction management
+│  (Core layer: business rules, protocol-agnostic) │
 ├─────────────────────────────────┤
-│  Repository / DAO 层            │  ← 数据访问、存储细节
-│  （存储层：只关心数据读写）        │
+│  Repository / DAO Layer         │  ← Data access, storage details
+│  (Storage layer: only cares about data read/write) │
 └─────────────────────────────────┘
 
-依赖方向：上层 → 下层，严禁反向依赖
+Dependency direction: Upper layer → Lower layer; reverse dependencies are strictly prohibited
 ```
 
-**常见错误：**
-- Controller 里写业务逻辑 → 无法复用，无法单测
-- Service 里直接操作 HTTP 对象（Request/Response）→ 耦合协议层
-- Repository 里写业务判断 → 存储层和业务层职责混淆
+**Common Mistakes:**
+- Writing business logic in Controller → Cannot reuse, cannot unit test
+- Service directly manipulating HTTP objects (Request/Response) → Coupled to protocol layer
+- Writing business judgments in Repository → Confusion between storage layer and business layer responsibilities
 
-### 2.2 面向接口编程与依赖倒置
+### 2.2 Programming to Interfaces and Dependency Inversion
 
-**原则：核心逻辑依赖抽象接口，而非具体实现。**
+**Principle: Core logic depends on abstract interfaces, not concrete implementations.**
 
 ```
-依赖倒置的核心价值：
-1. 可替换性：换数据库、换缓存、换消息队列，只改实现，不改业务
-2. 可测试性：Mock 接口即可单测，不需要启动真实基础设施
-3. 可演进性：新增实现不影响已有逻辑（开闭原则）
+Core value of dependency inversion:
+1. Replaceability: Swap database, cache, or message queue by changing only the implementation, not the business logic
+2. Testability: Mock interfaces for unit testing without starting real infrastructure
+3. Evolvability: New implementations don't affect existing logic (Open/Closed Principle)
 ```
 
 ```go
-// 定义抽象
+// Define abstraction
 type OrderRepository interface {
     GetByID(ctx context.Context, id string) (*Order, error)
     Save(ctx context.Context, order *Order) error
 }
 
-// 业务层只依赖接口
+// Business layer only depends on interfaces
 type OrderService struct {
-    repo OrderRepository  // 不关心具体实现是 MySQL 还是 MongoDB
+    repo OrderRepository  // Doesn't care whether the implementation is MySQL or MongoDB
 }
 
-// 具体实现在初始化时注入
+// Concrete implementation injected at initialization
 func NewOrderService(repo OrderRepository) *OrderService {
     return &OrderService{repo: repo}
 }
 ```
 
-### 2.3 配置与代码分离
+### 2.3 Separation of Configuration and Code
 
-**原则：任何因环境不同而变化的值，都不应硬编码在代码中。**
+**Principle: Any value that changes depending on the environment should not be hard-coded.**
 
 ```
-必须外部化的配置：
-├── 基础设施：数据库地址、Redis 地址、消息队列地址
-├── 超时与重试：HTTP 超时、DB 连接超时、重试次数
-├── 密钥与凭证：API Key、Secret、JWT Signing Key
-├── 特性开关：灰度开关、降级开关、A/B 实验标记
-└── 业务阈值：限额、限流值、缓存 TTL
+Configurations that must be externalized:
+├── Infrastructure: database address, Redis address, message queue address
+├── Timeouts & retries: HTTP timeout, DB connection timeout, retry count
+├── Keys & credentials: API Key, Secret, JWT Signing Key
+├── Feature toggles: gray release switch, degradation switch, A/B experiment flags
+└── Business thresholds: limits, rate limiting values, cache TTL
 ```
 
-**配置管理最佳实践：**
-- 不同环境（dev/staging/prod）通过环境变量或配置中心区分，同一份代码多环境部署
-- 密钥类配置走 Vault/Secret Manager，不能放在 Git 中
-- 配置变更最好支持热更新，避免每次改配置都要重启
+**Configuration Management Best Practices:**
+- Different environments (dev/staging/prod) are distinguished through environment variables or config centers; same code deploys to multiple environments
+- Secret-type configurations go through Vault/Secret Manager, not in Git
+- Configuration changes should ideally support hot updates, avoiding restarts for every config change
 
-### 2.4 单一职责与避免"上帝类"
+### 2.4 Single Responsibility and Avoiding "God Classes"
 
-**判断标准：如果一个类的修改原因超过一个，它就承担了过多职责。**
+**Judgment criterion: If a class has more than one reason to change, it is taking on too many responsibilities.**
 
-反模式信号：
-- 一个 Service 文件超过 500 行
-- 一个类注入了十几个依赖
-- 改一个业务功能需要修改同一个文件的多个位置
+Anti-pattern signals:
+- A Service file exceeds 500 lines
+- A class has more than a dozen dependencies injected
+- Changing one business feature requires modifying multiple places in the same file
 
-拆分策略：
-- 按业务领域拆分：`OrderService` → `OrderCreationService` + `OrderPaymentService` + `OrderFulfillmentService`
-- 按技术关注点拆分：将验证逻辑、通知逻辑、持久化逻辑各自独立
+Splitting strategies:
+- Split by business domain: `OrderService` → `OrderCreationService` + `OrderPaymentService` + `OrderFulfillmentService`
+- Split by technical concern: Make validation logic, notification logic, and persistence logic independent
 
 ---
 
-## 三、数据库与存储：数据是核心资产
+## III. Database & Storage: Data Is the Core Asset
 
-> 数据库往往是系统的瓶颈，也是最容易出问题的地方。对数据库操作的每一行代码都要格外审慎。
+> The database is often the bottleneck of the system and the place most prone to problems. Be extra cautious with every line of code that operates on the database.
 
-### 3.1 索引与查询优化
+### 3.1 Indexing and Query Optimization
 
-**设计原则：**
-- 所有 WHERE / JOIN / ORDER BY 涉及的列都要评估是否需要索引
-- 区分度高（选择性高）的列优先建索引；性别这种只有两个值的列不适合单独索引
-- 联合索引注意最左前缀原则，把选择性高的列放前面
-- 单表索引数量控制在 5-6 个以内，索引不是越多越好——写入时索引维护有代价
+**Design Principles:**
+- All columns involved in WHERE / JOIN / ORDER BY must be evaluated for indexing needs
+- Columns with high distinctiveness (high selectivity) should be prioritized for indexing; columns like gender with only two values are not suitable for standalone indexing
+- For composite indexes, follow the leftmost prefix principle; place high-selectivity columns first
+- Control the number of indexes per table to within 5-6; more indexes are not better — writes incur index maintenance costs
 
-**查询反模式速查：**
+**Query Anti-pattern Quick Reference:**
 
-| 反模式 | 问题 | 优化方案 |
-|--------|------|---------|
-| `SELECT *` | 返回无用列，浪费IO，影响覆盖索引 | 明确列出需要的字段 |
-| `LIKE '%keyword%'` | 前缀模糊无法使用索引 | 全文索引/Elasticsearch |
-| `ORDER BY RAND()` | 全表扫描+排序 | 预随机或应用层随机 |
-| 大偏移分页 `LIMIT 100000,10` | 深分页扫描大量数据 | 游标分页/基于 ID 分页 |
-| N+1 查询 | 循环中逐条查询 | JOIN 或批量 IN 查询 |
-| 隐式类型转换 | `varchar` 列用 `int` 查询导致索引失效 | 保证参数类型与列类型一致 |
+| Anti-pattern | Problem | Optimization |
+|--------------|---------|--------------|
+| `SELECT *` | Returns useless columns, wastes IO, affects covering index | Explicitly list required fields |
+| `LIKE '%keyword%'` | Prefix fuzzy match cannot use index | Full-text index / Elasticsearch |
+| `ORDER BY RAND()` | Full table scan + sort | Pre-randomization or application-layer randomization |
+| Large offset pagination `LIMIT 100000,10` | Deep pagination scans large amounts of data | Cursor pagination / ID-based pagination |
+| N+1 queries | Querying one by one in a loop | JOIN or batch IN queries |
+| Implicit type conversion | Querying a `varchar` column with `int` causes index invalidation | Ensure parameter type matches column type |
 
-### 3.2 事务的正确使用
+### 3.2 Correct Use of Transactions
 
-**事务不是万能药，不当使用反而会制造问题。**
+**Transactions are not a panacea; improper use can create problems.**
 
 ```
-事务使用的三条铁律：
-1. 事务要短 —— 长事务持有锁的时间长，阻塞其他操作
-2. 事务中禁止外部 IO —— RPC 调用、HTTP 请求不要放在事务中
-3. 事务粒度要最小化 —— 只包裹必须保证一致性的操作
+Three iron rules of transaction usage:
+1. Transactions should be short — long transactions hold locks for a long time, blocking other operations
+2. No external IO in transactions — RPC calls, HTTP requests should not be placed inside transactions
+3. Transaction granularity should be minimized — only wrap operations that must guarantee consistency
 ```
 
 ```go
-// ❌ 事务中包含 RPC 调用，外部服务慢会导致数据库锁一直持有
+// ❌ Transaction contains RPC call: slow external service causes DB lock to be held continuously
 tx := db.Begin()
 tx.Create(&order)
-paymentClient.Charge(order)  // 危险！网络调用可能耗时数秒
+paymentClient.Charge(order)  // Dangerous! Network call may take several seconds
 tx.Commit()
 
-// ✅ 先完成本地事务，再调用外部服务；通过状态机+补偿保证最终一致性
+// ✅ Complete local transaction first, then call external service; ensure eventual consistency via state machine + compensation
 tx := db.Begin()
 tx.Create(&order)
 order.Status = StatusPendingPayment
 tx.Commit()
 
-// 事务外调用外部服务
+// Call external service outside the transaction
 err := paymentClient.Charge(order)
 if err != nil {
-    // 标记支付失败，后续通过补偿机制处理
+    // Mark payment failure, handle via compensation mechanism later
     order.Status = StatusPaymentFailed
     db.Save(order)
 }
 ```
 
-### 3.3 数据增长的应对
+### 3.3 Dealing with Data Growth
 
-**时刻问自己：这张表的数据量会增长到什么量级？**
+**Constantly ask yourself: What scale will this table's data volume grow to?**
 
-| 数据量级 | 策略 |
-|----------|------|
-| 万级 | 单表即可，加好索引 |
-| 十万～百万 | 评估查询模式，考虑覆盖索引、读写分离 |
-| 千万级 | 分库分表（Sharding）、冷热分离、归档旧数据 |
-| 亿级+ | 重新审视存储选型，考虑 TiDB、ClickHouse、Elasticsearch 等 |
+| Data Scale | Strategy |
+|------------|----------|
+| Ten-thousands | Single table is sufficient; add good indexes |
+| Hundred-thousands ~ Millions | Evaluate query patterns; consider covering indexes, read-write separation |
+| Ten-millions | Sharding, hot-cold separation, archiving old data |
+| Hundred-millions+ | Re-evaluate storage choices; consider TiDB, ClickHouse, Elasticsearch, etc. |
 
-**必须考虑的增长问题：**
-- 查询 `COUNT(*)` 在大表上极慢 → 用统计表或缓存维护计数
-- `DELETE` 大量数据 → 分批删除，避免长事务锁表
-- 字段长度 → VARCHAR 按需设定，TEXT 类型影响索引策略
-- 联表查询 → 大表 JOIN 性能衰减，考虑冗余字段或宽表
+**Growth issues that must be considered:**
+- Querying `COUNT(*)` is extremely slow on large tables → Use statistics tables or cache-maintained counts
+- `DELETE` large amounts of data → Delete in batches to avoid long transactions locking the table
+- Field length → Set VARCHAR as needed; TEXT types affect indexing strategy
+- Join queries → Large table JOIN performance degrades; consider redundant fields or wide tables
 
-### 3.4 数据一致性保障
+### 3.4 Data Consistency Guarantees
 
 ```
-一致性策略选择矩阵：
+Consistency strategy selection matrix:
 ┌─────────────────┬────────────────────────────────────┐
-│  强一致性        │ 同一事务内完成，适合金额操作        │
-│  (事务)          │ 代价：性能开销大，锁持有时间长      │
+│  Strong Consistency│ Completed within the same transaction; suitable for monetary operations │
+│  (Transaction)  │ Cost: high performance overhead, long lock hold time              │
 ├─────────────────┼────────────────────────────────────┤
-│  最终一致性      │ 通过消息队列、状态机、补偿机制实现  │
-│  (Saga/TCC)     │ 适合跨服务操作，有延迟但最终达到一致 │
+│  Eventual Consistency│ Achieved via message queue, state machine, compensation mechanism │
+│  (Saga/TCC)     │ Suitable for cross-service operations; delayed but eventually consistent │
 ├─────────────────┼────────────────────────────────────┤
-│  对账兜底        │ 定时任务比对上下游数据差异          │
-│  (Reconciliation)│ 最后一道防线，发现并修复不一致数据  │
+│  Reconciliation │ Scheduled task compares upstream/downstream data differences      │
+│  (Reconciliation)│ Last line of defense: discover and repair inconsistent data        │
 └─────────────────┴────────────────────────────────────┘
 ```
 
 ---
 
-## 四、并发与分布式：复杂性之源
+## IV. Concurrency & Distributed Systems: The Source of Complexity
 
-> 单机编程是确定的，分布式编程充满不确定性。网络会断、时钟会偏、进程会死、消息会丢会重复。
+> Single-machine programming is deterministic; distributed programming is full of uncertainty. Networks fail, clocks drift, processes die, messages are lost or duplicated.
 
-### 4.1 并发安全
+### 4.1 Concurrency Safety
 
-**共享可变状态是并发 Bug 的根源。**
+**Shared mutable state is the root of concurrency bugs.**
 
 ```go
-// ❌ 并发不安全：多个 goroutine 同时修改 map
+// ❌ Not concurrency-safe: multiple goroutines modify map simultaneously
 var counter = make(map[string]int)
 go func() { counter["key"]++ }()  // data race!
 go func() { counter["key"]++ }()  // data race!
 
-// ✅ 方案一：加锁保护
+// ✅ Solution 1: Lock protection
 var mu sync.Mutex
 var counter = make(map[string]int)
 mu.Lock()
 counter["key"]++
 mu.Unlock()
 
-// ✅ 方案二：使用并发安全的数据结构
+// ✅ Solution 2: Use concurrency-safe data structures
 var counter sync.Map
 counter.Store("key", newValue)
 
-// ✅ 方案三（最佳）：用 channel 通信，消除共享状态
+// ✅ Solution 3 (Best): Communicate via channels, eliminate shared state
 ch := make(chan int, 100)
 go func() { ch <- 1 }()
 result := <-ch
 ```
 
-**锁的使用纪律：**
-- 锁的粒度要尽量小：只锁必须锁的代码段
-- **查询前加锁，而非查询后加锁**——否则查到的数据在加锁前可能已经被其他协程修改
-- 避免嵌套锁，防止死锁；如果必须嵌套，保证全局加锁顺序一致
-- 用 `defer` 确保锁一定被释放
+**Lock Usage Discipline:**
+- Lock granularity should be as small as possible: only lock the code segments that must be locked
+- **Lock before querying, not after querying** — otherwise, the data queried may have been modified by other goroutines before the lock is acquired
+- Avoid nested locks to prevent deadlocks; if nesting is necessary, ensure a globally consistent lock ordering
+- Use `defer` to ensure locks are always released
 
-### 4.2 幂等设计
+### 4.2 Idempotency Design
 
-**原则：任何可能被重复调用的操作，都必须是幂等的。**
-
-```
-必须幂等的场景清单：
-├── 支付回调（网络重试会导致重复通知）
-├── 消息消费（消息队列的 at-least-once 语义）
-├── 库存扣减（重试可能导致多扣）
-├── 状态流转（重复请求不应改变状态）
-└── 接口重试（客户端超时后自动重试）
-```
-
-**幂等实现方案：**
-
-| 方案 | 适用场景 | 实现方式 |
-|------|---------|---------|
-| 唯一请求 ID + 去重表 | 通用场景 | 每个请求携带唯一 ID，服务端记录处理过的 ID |
-| 业务唯一键 | 业务相关场景 | 如 orderNo + operationType 组合去重 |
-| 乐观锁 (版本号) | 数据更新场景 | `UPDATE t SET val=new, ver=ver+1 WHERE id=x AND ver=old` |
-| 状态机约束 | 状态流转场景 | 只允许从特定状态转换，重复请求因状态已变而无效 |
-
-### 4.3 分布式系统的基本认知
-
-**Fallacies of Distributed Computing（分布式计算的谬误）：**
-1. ~~网络是可靠的~~ → 网络会断，必须有重试和超时
-2. ~~延迟为零~~ → 每次远程调用都有延迟，需要合理设置超时
-3. ~~带宽是无限的~~ → 传输大数据需要考虑分片和压缩
-4. ~~网络是安全的~~ → 必须加密和鉴权
-5. ~~拓扑不会变~~ → 服务会上下线，需要服务发现
-6. ~~只有一个管理员~~ → 多团队协作，需要契约和文档
-7. ~~传输成本为零~~ → 序列化/反序列化有开销
-8. ~~网络是同构的~~ → 不同环境差异大，需要兼容
-
-### 4.4 异步与消息队列
-
-**消息队列是分布式系统的"解耦器"和"缓冲器"，但引入队列的同时也引入了复杂性。**
-
-**核心关注点：**
+**Principle: Any operation that may be called repeatedly must be idempotent.**
 
 ```
-消息队列使用自检清单：
-├── 消费幂等：消息队列通常提供 at-least-once 语义，重复投递是常态，消费者必须幂等
-├── 消息顺序：同一业务键的消息是否需要严格有序？分区有序 vs 全局有序
-├── 消费积压：消费速度跟不上生产速度怎么办？是否有监控和告警？
-├── 死信处理：消费失败的消息去哪了？是否配置了死信队列（DLQ）？
-├── 消息丢失：生产者发送失败是否有补偿策略？不能静默丢消息
-└── 最终一致性：异步操作无法实时同步，是否需要补偿/对账机制？
+Scenarios that must be idempotent:
+├── Payment callbacks (network retries cause duplicate notifications)
+├── Message consumption (message queues' at-least-once semantics)
+├── Inventory deduction (retries may cause over-deduction)
+├── State transitions (duplicate requests should not change state)
+└── Interface retries (client timeout triggers automatic retries)
 ```
 
-**生产者侧最佳实践：**
+**Idempotency Implementation Solutions:**
+
+| Solution | Applicable Scenario | Implementation |
+|----------|---------------------|----------------|
+| Unique Request ID + Deduplication Table | General scenarios | Each request carries a unique ID; server records processed IDs |
+| Business Unique Key | Business-related scenarios | E.g., orderNo + operationType combination for deduplication |
+| Optimistic Lock (Version Number) | Data update scenarios | `UPDATE t SET val=new, ver=ver+1 WHERE id=x AND ver=old` |
+| State Machine Constraints | State transition scenarios | Only allow transitions from specific states; duplicate requests become invalid because the state has already changed |
+
+### 4.3 Basic Understanding of Distributed Systems
+
+**Fallacies of Distributed Computing:**
+1. ~~The network is reliable~~ → Networks fail; must have retries and timeouts
+2. ~~Latency is zero~~ → Every remote call has latency; reasonable timeouts are needed
+3. ~~Bandwidth is infinite~~ → Transmitting large data requires consideration of sharding and compression
+4. ~~The network is secure~~ → Must encrypt and authenticate
+5. ~~Topology doesn't change~~ → Services go up and down; service discovery is needed
+6. ~~There is one administrator~~ → Multi-team collaboration requires contracts and documentation
+7. ~~Transport cost is zero~~ → Serialization/deserialization has overhead
+8. ~~The network is homogeneous~~ → Different environments vary greatly; compatibility is needed
+
+### 4.4 Asynchronous and Message Queues
+
+**Message queues are the "decoupler" and "buffer" of distributed systems, but introducing queues also introduces complexity.**
+
+**Core Concerns:**
+
+```
+Message Queue Usage Self-Check List:
+├── Idempotent consumption: Message queues usually provide at-least-once semantics; duplicate delivery is normal; consumers must be idempotent
+├── Message ordering: Do messages with the same business key require strict ordering? Partition ordering vs global ordering
+├── Consumer backlog: What if consumption speed can't keep up with production speed? Is there monitoring and alerting?
+├── Dead letter handling: Where do failed messages go? Is a Dead Letter Queue (DLQ) configured?
+├── Message loss: Does the producer have a compensation strategy for send failures? Don't silently drop messages
+└── Eventual consistency: Asynchronous operations can't synchronize in real-time; is a compensation/reconciliation mechanism needed?
+```
+
+**Producer-Side Best Practices:**
 
 ```go
-// 发送消息的可靠性保障
+// Reliability guarantee for sending messages
 func ProduceMessage(ctx context.Context, mq MessageQueue, msg *OrderMessage) error {
-    // 1. 先写本地事务表（Outbox 模式），确保消息和业务数据在同一事务中
+    // 1. Write to local transaction table first (Outbox pattern), ensuring message and business data are in the same transaction
     tx := db.Begin()
     tx.Create(&order)
     tx.Create(&OutboxMessage{
@@ -445,26 +445,26 @@ func ProduceMessage(ctx context.Context, mq MessageQueue, msg *OrderMessage) err
     })
     tx.Commit()
 
-    // 2. 异步投递器扫描 Outbox 表，发送消息到队列
-    // 3. 发送成功后标记 Outbox 状态为已发送
-    // 4. 定时任务兜底：重新发送超时未确认的消息
+    // 2. Async dispatcher scans Outbox table and sends messages to the queue
+    // 3. After successful send, mark Outbox status as sent
+    // 4. Scheduled task as safety net: resend messages that timed out without confirmation
     return nil
 }
 ```
 
-**消费者侧最佳实践：**
+**Consumer-Side Best Practices:**
 
 ```go
 func ConsumeOrderMessage(ctx context.Context, msg *OrderMessage) error {
-    // 1. 幂等检查：根据 messageID 或 业务唯一键 判断是否已处理
+    // 1. Idempotency check: determine if already processed based on messageID or business unique key
     if isProcessed(msg.ID) {
-        return nil  // 重复消息，直接确认
+        return nil  // Duplicate message, acknowledge directly
     }
 
-    // 2. 业务处理（在本地事务中完成）
+    // 2. Business processing (completed within a local transaction)
     tx := db.Begin()
-    // ... 执行业务逻辑 ...
-    // 3. 记录处理状态（同一事务中）
+    // ... execute business logic ...
+    // 3. Record processing status (within the same transaction)
     tx.Create(&ConsumeRecord{MessageID: msg.ID, Status: StatusConsumed})
     tx.Commit()
 
@@ -472,50 +472,50 @@ func ConsumeOrderMessage(ctx context.Context, msg *OrderMessage) error {
 }
 ```
 
-**三种常见消息一致性模式对比：**
+**Comparison of Three Common Message Consistency Patterns:**
 
-| 模式 | 原理 | 优点 | 缺点 |
-|------|------|------|------|
-| **Outbox 模式** | 业务数据和消息写入同一数据库，后台线程轮询发送 | 强一致，不丢消息 | 需要额外 Outbox 表和轮询机制 |
-| **事务消息** | MQ 提供半消息机制（如 RocketMQ） | 性能好，无需本地表 | 依赖特定 MQ 的支持 |
-| **尽力而为 + 对账** | 先发消息，失败时记录日志，定时对账补发 | 实现简单 | 有短暂不一致窗口 |
+| Pattern | Principle | Pros | Cons |
+|---------|-----------|------|------|
+| **Outbox Pattern** | Business data and messages written to the same database; background thread polls and sends | Strong consistency, no message loss | Requires additional Outbox table and polling mechanism |
+| **Transaction Message** | MQ provides half-message mechanism (e.g., RocketMQ) | Good performance, no local table needed | Depends on specific MQ support |
+| **Best-effort + Reconciliation** | Send message first; log on failure; scheduled reconciliation and resend | Simple to implement | Brief inconsistency window |
 
 ---
 
-## 五、可靠性工程：让系统在逆境中存活
+## V. Reliability Engineering: Keeping Systems Alive Under Adversity
 
-> 系统的可靠性不取决于正常运行时的表现，而取决于出问题时的表现。
+> System reliability is not determined by performance during normal operation, but by performance when problems occur.
 
-### 5.1 限流、熔断、降级
+### 5.1 Rate Limiting, Circuit Breaker, Degradation
 
 ```
-三道防线：
+Three Lines of Defense:
 ┌─────────────────────────────────────────────┐
-│ 限流（Rate Limiting）                        │
-│ 作用：保护自己，拒绝过量的请求                │
-│ 策略：令牌桶 / 漏桶 / 滑动窗口               │
-│ 位置：网关层 / 接口层                        │
+│ Rate Limiting                               │
+│ Purpose: Protect yourself; reject excessive requests │
+│ Strategy: Token Bucket / Leaky Bucket / Sliding Window │
+│ Location: Gateway layer / Interface layer   │
 ├─────────────────────────────────────────────┤
-│ 熔断（Circuit Breaker）                      │
-│ 作用：保护下游，当下游异常率超过阈值时断开调用 │
-│ 状态：Closed → Open → Half-Open → Closed     │
-│ 实现：Hystrix / Sentinel / resilience4go     │
+│ Circuit Breaker                             │
+│ Purpose: Protect downstream; stop calling when downstream error rate exceeds threshold │
+│ States: Closed → Open → Half-Open → Closed  │
+│ Implementation: Hystrix / Sentinel / resilience4go │
 ├─────────────────────────────────────────────┤
-│ 降级（Degradation）                          │
-│ 作用：保核心，牺牲非核心功能确保系统可用       │
-│ 策略：返回缓存数据 / 关闭推荐 / 关闭评论等    │
+│ Degradation                                 │
+│ Purpose: Protect core; sacrifice non-core features to ensure system availability │
+│ Strategy: Return cached data / disable recommendations / disable comments, etc. │
 └─────────────────────────────────────────────┘
 ```
 
-### 5.2 重试策略
+### 5.2 Retry Strategies
 
-**重试的三个前提条件：**
-1. **错误是可重试的**：网络超时/连接重置可重试，业务错误（如余额不足）不可重试
-2. **操作是幂等的**：重试不会产生副作用
-3. **重试有退避策略**：避免所有客户端同时重试造成"惊群效应"
+**Three prerequisites for retries:**
+1. **The error is retryable**: Network timeouts/connection resets are retryable; business errors (e.g., insufficient balance) are not
+2. **The operation is idempotent**: Retries won't produce side effects
+3. **Retries have a backoff strategy**: Avoid all clients retrying simultaneously causing a "thundering herd" effect
 
 ```go
-// 指数退避 + 抖动 的标准实现
+// Standard implementation of exponential backoff + jitter
 func RetryWithBackoff(ctx context.Context, fn func() error, maxRetries int) error {
     baseDelay := 100 * time.Millisecond
     maxDelay := 10 * time.Second
@@ -526,16 +526,16 @@ func RetryWithBackoff(ctx context.Context, fn func() error, maxRetries int) erro
             return nil
         }
         if !isRetryable(err) {
-            return err  // 不可重试的错误，直接返回
+            return err  // Non-retryable error, return directly
         }
         if attempt == maxRetries {
             return fmt.Errorf("max retries (%d) exceeded: %w", maxRetries, err)
         }
 
-        // 指数退避 + 随机抖动
+        // Exponential backoff + random jitter
         delay := time.Duration(float64(baseDelay) * math.Pow(2, float64(attempt)))
         jitter := time.Duration(rand.Int63n(int64(delay) / 2))
-        delay = min(delay+leftter, maxDelay)
+        delay = min(delay+jitter, maxDelay)
 
         select {
         case <-ctx.Done():
@@ -547,32 +547,32 @@ func RetryWithBackoff(ctx context.Context, fn func() error, maxRetries int) erro
 }
 ```
 
-### 5.3 超时控制
+### 5.3 Timeout Control
 
-**原则：每个外部调用都必须设置超时，永远不要无限等待。**
+**Principle: Every external call must have a timeout; never wait indefinitely.**
 
 ```
-超时设置的层次结构：
-HTTP 请求        → 3~10s（视业务而定）
-数据库查询       → 1~5s（复杂报表可适当放宽）
-Redis 操作       → 100~500ms
-RPC 调用         → 依赖下游 SLA，通常 1~5s
-连接建立超时     → 3~5s
-全链路超时       → 整个请求的全局超时，应大于各环节超时之和
+Timeout hierarchy:
+HTTP request        → 3~10s (depending on business)
+Database query      → 1~5s (complex reports may be relaxed)
+Redis operation     → 100~500ms
+RPC call            → Depends on downstream SLA, usually 1~5s
+Connection timeout  → 3~5s
+End-to-end timeout  → Global timeout for the entire request, should be greater than the sum of individual timeouts
 ```
 
-### 5.4 资源释放与防泄漏
+### 5.4 Resource Release and Leak Prevention
 
 ```go
-// 资源释放的铁律：用 defer 确保
+// Iron rule of resource release: use defer to ensure
 func ProcessFile(path string) error {
     f, err := os.Open(path)
     if err != nil {
         return err
     }
-    defer f.Close()  // 无论后续发生什么，都会关闭
+    defer f.Close()  // No matter what happens later, it will be closed
 
-    // 数据库连接、锁、HTTP Body 同理
+    // Database connections, locks, HTTP Body are the same
     mu.Lock()
     defer mu.Unlock()
 
@@ -582,82 +582,82 @@ func ProcessFile(path string) error {
 }
 ```
 
-**Goroutine 泄漏防范：**
-- 每个 goroutine 都必须有明确的退出机制（context cancellation / done channel）
-- 启动 goroutine 前问自己：它什么时候结束？如果不知道，不要启动
-- 用 `runtime.NumGoroutine()` 监控 goroutine 数量，持续增长就是泄漏
+**Goroutine Leak Prevention:**
+- Every goroutine must have a clear exit mechanism (context cancellation / done channel)
+- Before starting a goroutine, ask yourself: when does it end? If you don't know, don't start it
+- Monitor goroutine count with `runtime.NumGoroutine()`; continuous growth indicates a leak
 
-### 5.5 优雅上下线
+### 5.5 Graceful Startup and Shutdown
 
 ```
-优雅上线：
-1. 启动所有依赖连接（DB、Cache、MQ）
-2. 初始化缓存（预热热点数据）
-3. 注册健康检查接口
-4. 健康检查通过后才接入流量
-5. 对于多实例，考虑逐个上线（金丝雀发布）
+Graceful Startup:
+1. Start all dependency connections (DB, Cache, MQ)
+2. Initialize cache (warm up hot data)
+3. Register health check endpoint
+4. Only accept traffic after health check passes
+5. For multiple instances, consider rolling out one by one (canary release)
 
-优雅下线：
-1. 从服务注册中心摘除，停止接收新请求
-2. 等待进行中的请求处理完成（设一个优雅等待时间，如 15s）
-3. 关闭连接、刷新缓冲区
-4. 退出进程
+Graceful Shutdown:
+1. Deregister from service registry, stop receiving new requests
+2. Wait for in-flight requests to complete (set a graceful wait time, e.g., 15s)
+3. Close connections, flush buffers
+4. Exit process
 ```
 
 ---
 
-## 六、性能与可扩展性：应对增长的挑战
+## VI. Performance & Scalability: Meeting the Challenge of Growth
 
-> 性能优化的第一步不是优化代码，而是确认瓶颈在哪里。
+> The first step of performance optimization is not optimizing code, but confirming where the bottleneck is.
 
-### 6.1 性能优化方法论
-
-```
-性能优化的正确步骤：
-1. 量化现状 → 用 PProf / APM / 压测工具获取基准数据
-2. 定位瓶颈 → CPU / 内存 / IO / 锁竞争 / 网络哪个是瓶颈？
-3. 优化瓶颈 → 只优化瓶颈，不优化非瓶颈（过度优化是浪费）
-4. 验证效果 → 压测对比，确认优化有效且无副作用
-5. 持续监控 → 防止性能退化
-```
-
-### 6.2 缓存策略
+### 6.1 Performance Optimization Methodology
 
 ```
-缓存决策树：
-             数据变更频繁？
+Correct steps for performance optimization:
+1. Quantify current state → Use PProf / APM / load testing tools to get baseline data
+2. Locate bottleneck → Which is the bottleneck: CPU / memory / IO / lock contention / network?
+3. Optimize bottleneck → Only optimize the bottleneck, not non-bottlenecks (over-optimization is waste)
+4. Verify effect → Compare load tests to confirm optimization is effective and has no side effects
+5. Continuous monitoring → Prevent performance degradation
+```
+
+### 6.2 Caching Strategies
+
+```
+Caching Decision Tree:
+             Data changes frequently?
             /             \
-          是               否
+          Yes              No
           |                |
-     是否允许短暂不一致？   直接缓存，设合理 TTL
+     Allow brief inconsistency?   Cache directly, set reasonable TTL
       /           \
-    是             否
+    Yes            No
     |              |
  Cache Aside      Write Through
- (先更新DB,        (同步更新DB和缓存)
-  再删缓存)         代价：写入延迟高
-  + 延迟双删
+ (Update DB first, (Sync update DB and cache)
+  then delete cache) Cost: high write latency
+  + delayed double delete
 ```
 
-**缓存常见陷阱：**
-- **缓存穿透**：查询不存在的数据 → 布隆过滤器 / 缓存空值
-- **缓存雪崩**：大量缓存同时过期 → TTL 加随机偏移
-- **缓存击穿**：热点 Key 过期瞬间大量请求打到 DB → 互斥锁 / 永不过期 + 异步刷新
-- **缓存与 DB 不一致** → 明确一致性策略，接受最终一致性并用对账兜底
+**Common Caching Pitfalls:**
+- **Cache penetration**: Querying non-existent data → Bloom filter / cache null values
+- **Cache avalanche**: Large amounts of cache expire simultaneously → Add random offset to TTL
+- **Cache hotspot**: Massive requests hit DB when hot key expires → Mutex lock / never expire + async refresh
+- **Cache-DB inconsistency** → Define clear consistency strategy, accept eventual consistency, and use reconciliation as safety net
 
-### 6.3 批量操作与数据量意识
+### 6.3 Batch Operations and Data Volume Awareness
 
-**原则：永远不要一次性处理大量数据。**
+**Principle: Never process large amounts of data at once.**
 
 ```go
-// ❌ 一次性加载全部数据
+// ❌ Load all data at once
 var allOrders []Order
-db.Find(&allOrders)  // 数据量大时 OOM 或超时
+db.Find(&allOrders)  // OOM or timeout when data volume is large
 for _, order := range allOrders {
     process(order)
 }
 
-// ✅ 分批处理
+// ✅ Batch processing
 const batchSize = 500
 var lastID int64 = 0
 for {
@@ -673,174 +673,174 @@ for {
 }
 ```
 
-**数据量意识清单：**
-- 数组/切片会增长到多大？是否会撑爆内存？
-- 数据库表会有多少行？查询在大数据量下还能走索引吗？
-- API 返回的数据量有上限吗？是否需要分页？
-- 定时任务处理的数据量随时间增长，执行时间会超过调度间隔吗？
+**Data Volume Awareness Checklist:**
+- How large will arrays/slices grow? Will they burst memory?
+- How many rows will the database table have? Can queries still use indexes at large data volumes?
+- Is there an upper limit on API response data volume? Is pagination needed?
+- Will the data volume processed by scheduled tasks grow over time, exceeding the scheduling interval?
 
-### 6.4 程序长期运行的考量
+### 6.4 Considerations for Long-Running Programs
 
-**程序运行时间久了会发生什么？**
+**What happens when a program runs for a long time?**
 
-| 问题 | 原因 | 应对方案 |
-|------|------|---------|
-| 内存持续增长 | goroutine 泄漏、缓存无上限、连接未释放 | 监控内存趋势、设置缓存上限、pprof 分析 |
-| 连接池耗尽 | 连接泄漏、慢查询占用连接 | 设置最大连接数、查询超时、连接泄漏检测 |
-| 文件描述符耗尽 | 未关闭的文件/连接/Socket | 永远用 defer close、监控 fd 使用量 |
-| goroutine 数量失控 | 无退出机制的 goroutine | context 取消机制、监控 goroutine 数量 |
-| 性能逐渐退化 | 数据量增长、索引碎片化 | 定期归档、重建索引、容量规划 |
+| Problem | Cause | Countermeasure |
+|---------|-------|----------------|
+| Continuous memory growth | Goroutine leak, unbounded cache, unreleased connections | Monitor memory trends, set cache limits, pprof analysis |
+| Connection pool exhaustion | Connection leak, slow queries occupying connections | Set max connections, query timeouts, connection leak detection |
+| File descriptor exhaustion | Unclosed files/connections/sockets | Always use defer close, monitor fd usage |
+| Goroutine count out of control | Goroutines without exit mechanisms | Context cancellation mechanism, monitor goroutine count |
+| Gradual performance degradation | Data volume growth, index fragmentation | Regular archiving, rebuild indexes, capacity planning |
 
 ---
 
-## 七、安全防御：不信任一切外部输入
+## VII. Security Defense: Trust No External Input
 
-> 安全不是一个功能，而是一种思维方式。每一个外部输入都可能是攻击向量。
+> Security is not a feature, but a mindset. Every external input is a potential attack vector.
 
-### 7.1 输入校验原则
+### 7.1 Input Validation Principles
 
 ```
-输入校验的三道防线：
+Three Lines of Defense for Input Validation:
 ┌──────────────────────────────────────┐
-│ 第一道：Controller 层                │
-│ - 参数类型校验（必填、格式、范围）    │
-│ - 使用 Validator 框架声明式校验       │
-│ - 拦截明显非法输入                    │
+│ First Line: Controller Layer         │
+│ - Parameter type validation (required, format, range) │
+│ - Use Validator framework for declarative validation │
+│ - Intercept obviously invalid input  │
 ├──────────────────────────────────────┤
-│ 第二道：Service 层                   │
-│ - 业务规则校验（状态是否允许、权限）  │
-│ - 跨字段联合校验                      │
+│ Second Line: Service Layer           │
+│ - Business rule validation (state allowed, permissions) │
+│ - Cross-field combined validation    │
 ├──────────────────────────────────────┤
-│ 第三道：数据库层                      │
-│ - 唯一约束、外键约束、CHECK 约束     │
-│ - 最后的兜底，防止脏数据入库          │
+│ Third Line: Database Layer           │
+│ - Unique constraints, foreign key constraints, CHECK constraints │
+│ - Last line of defense, preventing dirty data from entering the database │
 └──────────────────────────────────────┘
 ```
 
-### 7.2 常见攻击防护
+### 7.2 Common Attack Protection
 
-| 攻击类型 | 防护措施 |
-|----------|---------|
-| SQL 注入 | 永远使用参数化查询/预编译语句，禁止拼接 SQL |
-| XSS | 输出编码（HTML/CSS/JS context 各有对应编码方式） |
+| Attack Type | Protection Measures |
+|-------------|---------------------|
+| SQL Injection | Always use parameterized queries/prepared statements; prohibit SQL concatenation |
+| XSS | Output encoding (HTML/CSS/JS contexts each have corresponding encoding methods) |
 | CSRF | SameSite Cookie + CSRF Token |
-| 越权访问 | 接口级鉴权 + 数据级鉴权（不能只校验登录状态，还要校验数据归属） |
-| 敏感信息泄露 | 响应脱敏、日志脱敏、错误信息不暴露内部细节 |
-| 重放攻击 | 请求签名 + 时间戳 + nonce |
+| Unauthorized Access | Interface-level authorization + data-level authorization (don't just check login status; also check data ownership) |
+| Sensitive Information Leakage | Response desensitization, log desensitization, error messages don't expose internal details |
+| Replay Attack | Request signature + timestamp + nonce |
 
-### 7.3 最小权限原则
-
-```
-权限最小化的实践清单：
-├── 数据库账号：应用账号只授予 SELECT/INSERT/UPDATE/DELETE 权限，不给 DDL 权限
-├── API 调用：Token/Key 只授予必要的 scope，不用全局权限
-├── 服务器访问：应用进程不用 root 运行
-├── 内部服务：服务间调用走内网，用 mTLS 或服务网格认证
-└── CI/CD：构建环境凭证最小化，不用生产密钥
-```
-
-### 7.4 敏感数据保护
-
-**原则：敏感数据在存储、传输、展示的每个环节都要有保护措施。**
+### 7.3 Principle of Least Privilege
 
 ```
-敏感数据保护三层模型：
+Least privilege practice checklist:
+├── Database account: Application account only granted SELECT/INSERT/UPDATE/DELETE permissions, no DDL permissions
+├── API calls: Token/Key only granted necessary scope, no global permissions
+├── Server access: Application process does not run as root
+├── Internal services: Service-to-service calls use internal network, with mTLS or service mesh authentication
+└── CI/CD: Build environment credentials minimized, no production keys used
+```
+
+### 7.4 Sensitive Data Protection
+
+**Principle: Sensitive data must have protective measures at every stage of storage, transmission, and display.**
+
+```
+Sensitive Data Protection Three-Layer Model:
 ┌────────────────────────────────────────────────────────┐
-│  存储层保护                                            │
-│  - 密码必须使用 bcrypt/scrypt/argon2 哈希，禁止明文    │
-│  - 身份证、银行卡号等 PII 数据加密后存储（AES-256-GCM）│
-│  - 数据库加密：透明数据加密（TDE）或应用层加密          │
-│  - 备份文件也要加密，很多数据泄露来自备份               │
+│  Storage Layer Protection                              │
+│  - Passwords must be hashed with bcrypt/scrypt/argon2, plaintext prohibited │
+│  - PII data such as ID numbers, bank card numbers encrypted at rest (AES-256-GCM) │
+│  - Database encryption: Transparent Data Encryption (TDE) or application-layer encryption │
+│  - Backup files must also be encrypted; many data leaks come from backups │
 ├────────────────────────────────────────────────────────┤
-│  传输层保护                                            │
-│  - 所有外部通信走 TLS 1.2+，禁止明文 HTTP              │
-│  - 内部服务间调用也走 TLS 或 mTLS，内网并非绝对安全    │
-│  - API 密钥、Token 不通过 URL 参数传递，用 Header      │
+│  Transmission Layer Protection                         │
+│  - All external communication uses TLS 1.2+, plaintext HTTP prohibited │
+│  - Internal service calls also use TLS or mTLS; internal networks are not absolutely secure │
+│  - API keys, tokens not passed via URL parameters, use Header instead │
 ├────────────────────────────────────────────────────────┤
-│  展示层保护                                            │
-│  - 日志脱敏：密码、Token、身份证号、手机号掩码处理     │
-│  - 响应脱敏：API 返回中隐藏敏感字段或部分掩码          │
-│  - 错误信息不暴露内部细节（堆栈、SQL、文件路径）       │
+│  Display Layer Protection                              │
+│  - Log desensitization: mask passwords, tokens, ID numbers, phone numbers │
+│  - Response desensitization: hide sensitive fields or partially mask in API responses │
+│  - Error messages don't expose internal details (stack traces, SQL, file paths) │
 └────────────────────────────────────────────────────────┘
 ```
 
-**密钥管理最佳实践：**
+**Key Management Best Practices:**
 
-| 做法 | 说明 |
-|------|------|
-| ❌ 禁止 | 密钥硬编码在代码中、提交到 Git、写在配置文件明文中 |
-| ❌ 禁止 | 多环境共用同一套密钥 |
-| ✅ 推荐 | 使用 KMS（Key Management Service）或 Vault 统一管理密钥 |
-| ✅ 推荐 | 密钥定期轮换（Rotation），泄露后可快速失效 |
-| ✅ 推荐 | 不同环境使用不同密钥，生产密钥只有运维/Secret 管理系统可访问 |
-| ✅ 推荐 | 密钥使用时从 Secret Manager 动态拉取，不落盘 |
+| Practice | Explanation |
+|----------|-------------|
+| ❌ Prohibited | Keys hard-coded in code, committed to Git, written in plaintext in config files |
+| ❌ Prohibited | Multiple environments sharing the same set of keys |
+| ✅ Recommended | Use KMS (Key Management Service) or Vault for unified key management |
+| ✅ Recommended | Regular key rotation; quickly invalidate if leaked |
+| ✅ Recommended | Different keys for different environments; production keys only accessible by operations/Secret management systems |
+| ✅ Recommended | Keys dynamically fetched from Secret Manager when used, not persisted to disk |
 
-**常见脱敏规则示例：**
+**Common Desensitization Rules Examples:**
 
 ```
-手机号：138****1234          （保留前3后4）
-身份证：310***********1234   （保留前3后4）
-银行卡：**** **** **** 5678  （保留后4）
-邮箱：   c***@example.com    （保留首字母和域名）
-密码：   [REDACTED]          （完全隐藏）
-Token：  tk_****...****89ab  （保留前缀和后4位，用于排查）
+Phone:    138****1234          (Keep first 3 and last 4)
+ID:       310***********1234   (Keep first 3 and last 4)
+Bank Card:**** **** **** 5678  (Keep last 4)
+Email:    c***@example.com    (Keep first letter and domain)
+Password: [REDACTED]          (Completely hidden)
+Token:    tk_****...****89ab  (Keep prefix and last 4 digits, for troubleshooting)
 ```
 
 ---
 
-## 八、可观测性与运维：让系统透明可理解
+## VIII. Observability & Operations: Making Systems Transparent and Understandable
 
-> 没有监控的系统就像蒙着眼开车——你不知道什么时候会出事。
+> A system without monitoring is like driving with your eyes covered — you don't know when an accident will happen.
 
-### 8.1 可观测性三支柱
+### 8.1 Three Pillars of Observability
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│ Logs（日志）                                         │
-│ 作用：记录离散事件，排查具体问题                      │
-│ 关键：结构化、带 traceID、关键业务数据               │
-│ 工具：ELK / Loki + Grafana                           │
+│ Logs                                                 │
+│ Purpose: Record discrete events, troubleshoot specific issues │
+│ Key: Structured, with traceID, key business data    │
+│ Tools: ELK / Loki + Grafana                          │
 ├─────────────────────────────────────────────────────┤
-│ Metrics（指标）                                      │
-│ 作用：聚合数据，发现趋势和异常                        │
-│ 必备指标：QPS、延迟 P50/P95/P99、错误率              │
-│ 业务指标：订单量、支付成功率、队列积压深度            │
-│ 工具：Prometheus + Grafana                           │
+│ Metrics                                              │
+│ Purpose: Aggregate data, discover trends and anomalies │
+│ Essential metrics: QPS, latency P50/P95/P99, error rate │
+│ Business metrics: Order volume, payment success rate, queue backlog depth │
+│ Tools: Prometheus + Grafana                          │
 ├─────────────────────────────────────────────────────┤
-│ Traces（链路追踪）                                   │
-│ 作用：还原一个请求的完整调用链路                      │
-│ 关键：每个请求有全局唯一的 TraceID，跨服务传递        │
-│ 工具：Jaeger / Zipkin / SkyWalking / OpenTelemetry   │
+│ Traces                                               │
+│ Purpose: Restore the complete call chain of a request │
+│ Key: Every request has a globally unique TraceID, passed across services │
+│ Tools: Jaeger / Zipkin / SkyWalking / OpenTelemetry  │
 └─────────────────────────────────────────────────────┘
 ```
 
-### 8.2 告警设计
+### 8.2 Alert Design
 
-**告警原则：**
-- 告警必须是可操作的——收到告警后知道该做什么。不知道该做什么的告警是噪音
-- 区分 P0/P1/P2/P3 严重级别，不同级别不同通知渠道和响应时效
-- 告警要有明确的阈值，避免"差不多就行"
-- 定期审查告警，删除长期无人处理的告警（"告警疲劳"）
+**Alert Principles:**
+- Alerts must be actionable — when you receive an alert, you should know what to do. Alerts that you don't know how to handle are noise
+- Distinguish P0/P1/P2/P3 severity levels; different levels have different notification channels and response times
+- Alerts should have clear thresholds; avoid "roughly okay"
+- Regularly review alerts; delete alerts that have been ignored for a long time ("alert fatigue")
 
 ```
-典型告警规则示例：
-├── P0（立即响应）：错误率 > 5%、服务不可用、数据库连接耗尽
-├── P1（30分钟响应）：P99 延迟 > 2s、队列积压 > 10000
-├── P2（当日处理）：磁盘使用率 > 80%、慢查询增多
-└── P3（规划处理）：内存缓慢增长趋势、技术债务告警
+Typical alert rules examples:
+├── P0 (Immediate response): Error rate > 5%, service unavailable, database connections exhausted
+├── P1 (30-minute response): P99 latency > 2s, queue backlog > 10000
+├── P2 (Handle same day): Disk usage > 80%, slow queries increasing
+└── P3 (Plan to handle): Slow memory growth trend, technical debt alerts
 ```
 
-### 8.3 链路追踪实践
+### 8.3 Distributed Tracing Practice
 
 ```go
-// 在请求入口生成 TraceID，全链路传递
+// Generate TraceID at request entry, pass through the entire chain
 func OrderHandler(c *gin.Context) {
     ctx := context.WithValue(c.Request.Context(), "traceID", uuid.New().String())
 
-    // 所有日志都带上 traceID
+    // All logs carry traceID
     logger := log.With(zap.String("traceID", getTraceID(ctx)))
 
-    // 调用下游服务时，通过 HTTP Header 或 gRPC Metadata 传递
+    // When calling downstream services, pass via HTTP Header or gRPC Metadata
     req := http.NewRequest("GET", paymentServiceURL, nil)
     req.Header.Set("X-Trace-ID", getTraceID(ctx))
 }
@@ -848,140 +848,140 @@ func OrderHandler(c *gin.Context) {
 
 ---
 
-## 九、工程实践与团队协作
+## IX. Engineering Practices & Team Collaboration
 
-> 一个人能写好代码，一个团队才能做好系统。
+> One person can write good code; a team can build good systems.
 
-### 9.1 代码审查（Code Review）
+### 9.1 Code Review
 
-**Code Review 应关注的核心维度：**
+**Core dimensions Code Review should focus on:**
 
-| 维度 | 关注点 | 不应关注 |
-|------|--------|---------|
-| 正确性 | 逻辑是否正确、边界条件是否处理 | |
-| 安全性 | 是否有注入、越权等安全风险 | 代码风格（交给 lint 工具） |
-| 可维护性 | 是否过度设计/设计不足、命名是否清晰 | 个人偏好的写法差异 |
-| 性能 | 是否有明显的性能问题（N+1、大循环内 IO） | |
-| 兼容性 | 是否破坏了已有接口/数据兼容性 | |
+| Dimension | Focus | Not Focus |
+|-----------|-------|-----------|
+| Correctness | Is the logic correct? Are boundary conditions handled? | |
+| Security | Are there injection, unauthorized access, and other security risks? | Code style (leave to lint tools) |
+| Maintainability | Is it over-designed/under-designed? Is naming clear? | Personal preference differences |
+| Performance | Are there obvious performance issues (N+1, IO inside large loops)? | |
+| Compatibility | Does it break existing interfaces/data compatibility? | |
 
-**审查者的态度：**
-- 提问而非命令（"这里用 XXX 会不会更好？" 而非 "改成 XXX"）
-- 解释原因（"建议改因为..." 而非 "改"）
-- 区分必须修改（Must）和建议改进（Nice to have）
+**Reviewer's Attitude:**
+- Ask rather than command ("Would XXX be better here?" instead of "Change to XXX")
+- Explain reasons ("Suggest changing because..." instead of "Change")
+- Distinguish between must-fix (Must) and nice-to-have suggestions (Nice to have)
 
-### 9.2 测试策略
+### 9.2 Testing Strategy
 
 ```
-测试金字塔：
-        ╱  E2E Tests  ╲        ← 少量，验证核心链路
+Testing Pyramid:
+        ╱  E2E Tests  ╲        ← Few, verify core paths
        ╱────────────────╲
-      ╱  Integration Tests ╲   ← 适量，验证模块交互
+      ╱  Integration Tests ╲   ← Moderate, verify module interactions
      ╱────────────────────────╲
-    ╱     Unit Tests            ╲  ← 大量，覆盖核心逻辑
+    ╱     Unit Tests            ╲  ← Many, cover core logic
    ╱──────────────────────────────╲
 ```
 
-**务实的测试原则：**
-- 不追求 100% 覆盖率，但核心业务必须有测试（支付、金额计算、状态流转）
-- 用表驱动测试（Table-Driven Tests）覆盖正常/边界/异常场景
-- 测试代码也是代码，要和业务代码同等质量维护
-- 测试要快速——慢测试会被跳过，跳过的测试等于没有
+**Pragmatic Testing Principles:**
+- Don't pursue 100% coverage, but core business must have tests (payment, amount calculation, state transitions)
+- Use table-driven tests to cover normal/boundary/exception scenarios
+- Test code is also code; maintain it with the same quality as business code
+- Tests must be fast — slow tests will be skipped, and skipped tests are as good as none
 
-### 9.3 文档与知识管理
+### 9.3 Documentation and Knowledge Management
 
-**原则：文档不是负担，是团队沟通效率的倍增器。**
-
-```
-文档体系：
-├── API 文档 → Swagger/OpenAPI，与代码同步更新
-├── 设计文档 → 记录"为什么这样做"，而不只是"做了什么"
-├── 运维文档 → 部署架构、故障手册、应急预案
-├── 变更记录 → CHANGELOG，每个版本改了什么
-└── 知识库   → 踩坑记录、技术决策记录（ADR）
-```
-
-**API 文档的核心要求：**
-- 每个接口必须文档化：URL、Method、参数、返回值、错误码、示例
-- 文档与实现不一致比没有文档更可怕——必须建立文档更新机制
-- 破坏性变更必须提前通知，给出迁移方案和过渡期
-
-### 9.4 变更的兼容性思维
-
-**每次修改代码时问自己：**
+**Principle: Documentation is not a burden, but a multiplier of team communication efficiency.**
 
 ```
-兼容性自检清单：
-├── [ ] 旧版本的数据在新代码中能正常工作吗？
-├── [ ] 旧版本的客户端能正常调用新接口吗？
-├── [ ] 数据库 Schema 变更是否向后兼容？
-├── [ ] 配置项变更是否有默认值，旧配置是否仍有效？
-├── [ ] 消息格式变更是否影响正在处理的消息？
-└── [ ] 是否需要灰度发布，逐步推进？
+Documentation System:
+├── API Documentation → Swagger/OpenAPI, updated synchronously with code
+├── Design Documentation → Record "why it was done this way", not just "what was done"
+├── Operations Documentation → Deployment architecture, runbooks, emergency plans
+├── Change Log → CHANGELOG, what changed in each version
+└── Knowledge Base → Pitfall records, technical decision records (ADR)
 ```
 
-**数据库变更的安全原则：**
-- 加列可以，减列要分步（先不读、再清理）
-- 改类型必须分步（加新列 → 迁移数据 → 切读新列 → 删旧列）
-- 永远不要直接删除还在被使用的列/表，先标记废弃，下个版本再清理
+**Core Requirements for API Documentation:**
+- Every interface must be documented: URL, Method, parameters, return values, error codes, examples
+- Documentation inconsistent with implementation is worse than no documentation — must establish a documentation update mechanism
+- Breaking changes must be notified in advance, with migration plans and transition periods provided
+
+### 9.4 Compatibility Thinking for Changes
+
+**Ask yourself every time you modify code:**
+
+```
+Compatibility Self-Check List:
+├── [ ] Can old-version data work normally with the new code?
+├── [ ] Can old-version clients call the new interface normally?
+├── [ ] Is the database schema change backward compatible?
+├── [ ] Does the config item change have a default value? Is the old config still valid?
+├── [ ] Does the message format change affect messages being processed?
+└── [ ] Is a gray release needed, to roll out gradually?
+```
+
+**Safe Principles for Database Changes:**
+- Adding columns is fine; removing columns must be done in steps (stop reading first, then clean up)
+- Changing types must be done in steps (add new column → migrate data → switch reads to new column → delete old column)
+- Never directly delete columns/tables that are still in use; mark as deprecated first, clean up in the next version
 
 ---
 
-## 附录：自检清单速查表
+## Appendix: Quick Self-Check Checklist
 
-> 每次提交代码前过一遍这张清单。
+> Go through this checklist every time before committing code.
 
-### 提交前必查（Quick Check）
+### Pre-Commit Quick Check
 
-| # | 检查项 | ✅ |
-|---|--------|----|
-| 1 | 命名是否清晰、无歧义、符合团队规范 | |
-| 2 | 函数是否短小、职责单一、参数合理 | |
-| 3 | 错误是否提前返回，避免深层嵌套 | |
-| 4 | 是否有魔法数字/字符串未提取为常量或枚举 | |
-| 5 | 关键路径是否打了日志，日志包含足够定位信息 | |
-| 6 | 是否有重复代码可以抽取 | |
+| # | Check Item | ✅ |
+|---|------------|----|
+| 1 | Is naming clear, unambiguous, and compliant with team conventions? | |
+| 2 | Are functions short, single-responsibility, with reasonable parameters? | |
+| 3 | Do errors return early, avoiding deep nesting? | |
+| 4 | Are there magic numbers/strings not extracted as constants or enums? | |
+| 5 | Are critical paths logged, with sufficient information to locate issues? | |
+| 6 | Is there duplicated code that can be extracted? | |
 
-### 数据库相关
+### Database Related
 
-| # | 检查项 | ✅ |
-|---|--------|----|
-| 7 | WHERE/JOIN/ORDER BY 字段是否有索引 | |
-| 8 | 事务是否短小，是否包含外部 IO 调用 | |
-| 9 | 大批量操作是否分批执行 | |
-| 10 | 是否考虑了数据增长后的性能 | |
-| 11 | 查询是否只 SELECT 需要的字段 | |
+| # | Check Item | ✅ |
+|---|------------|----|
+| 7 | Are WHERE/JOIN/ORDER BY fields indexed? | |
+| 8 | Are transactions short, and do they contain external IO calls? | |
+| 9 | Are large-batch operations executed in batches? | |
+| 10 | Is performance after data growth considered? | |
+| 11 | Do queries SELECT only the fields needed? | |
 
-### 并发与可靠性
+### Concurrency and Reliability
 
-| # | 检查项 | ✅ |
-|---|--------|----|
-| 12 | 共享状态是否加锁保护，锁粒度是否合理 | |
-| 13 | 查询前是否已加锁（避免 TOCTOU 问题） | |
-| 14 | 可能被重复调用的接口是否幂等 | |
-| 15 | 外部调用是否有超时控制和重试策略 | |
-| 16 | 资源（连接/锁/goroutine）是否确保释放 | |
-| 17 | 是否有降级/熔断保护 | |
+| # | Check Item | ✅ |
+|---|------------|----|
+| 12 | Is shared state protected by locks, with reasonable lock granularity? | |
+| 13 | Is the lock acquired before querying (avoiding TOCTOU issues)? | |
+| 14 | Are interfaces that may be called repeatedly idempotent? | |
+| 15 | Do external calls have timeout control and retry strategies? | |
+| 16 | Are resources (connections/locks/goroutines) guaranteed to be released? | |
+| 17 | Is there degradation/circuit breaker protection? | |
 
-### 安全与兼容
+### Security and Compatibility
 
-| # | 检查项 | ✅ |
-|---|--------|----|
-| 18 | 外部输入是否全部校验 | |
-| 19 | SQL 是否使用参数化查询 | |
-| 20 | 敏感数据是否脱敏 | |
-| 21 | 接口是否有鉴权 | |
-| 22 | 变更是否向后兼容，旧数据/旧客户端是否受影响 | |
+| # | Check Item | ✅ |
+|---|------------|----|
+| 18 | Is all external input validated? | |
+| 19 | Are SQL queries using parameterized queries? | |
+| 20 | Is sensitive data desensitized? | |
+| 21 | Are interfaces authenticated and authorized? | |
+| 22 | Is the change backward compatible? Are old data/old clients affected? | |
 
-### 运维与可观测
+### Operations and Observability
 
-| # | 检查项 | ✅ |
-|---|--------|----|
-| 23 | 关键指标（QPS/延迟/错误率）是否有监控 | |
-| 24 | 是否有链路追踪和 TraceID | |
-| 25 | 服务是否能优雅上下线 | |
-| 26 | 配置是否外部化，密钥是否安全存储 | |
+| # | Check Item | ✅ |
+|---|------------|----|
+| 23 | Are key metrics (QPS/latency/error rate) monitored? | |
+| 24 | Is there distributed tracing and TraceID? | |
+| 25 | Can the service start and shut down gracefully? | |
+| 26 | Is configuration externalized, and are keys stored securely? | |
 
 ---
 
-> **最后一句话：写出能跑的代码不难，写出能在生产环境长期稳定运行的代码才见真功夫。**
-> 每一条规则背后都是一次线上故障的血泪教训。把它们变成肌肉记忆，你的代码质量会有质的飞跃。
+> **Final words: Writing code that runs is not hard; writing code that runs stably in production for the long term is where true skill shows.**
+> Every rule behind this is a lesson learned from painful on-call incidents. Turn them into muscle memory, and your code quality will take a qualitative leap.

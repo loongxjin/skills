@@ -1,315 +1,315 @@
 ---
-name: backend-code-review
+name: backend-code-review-en
 description: |
-  后端代码质量审查技能。基于资深后端工程实践，从6大领域29个维度系统深入审查后端代码质量。
+  Backend code quality review skill. Based on senior backend engineering practices, systematically and thoroughly reviews backend code quality across 6 domains and 29 dimensions.
   Use when reviewing, auditing, or evaluating backend code quality — including Go, Java, Python, Rust, C++, or any backend language.
   Triggers: 代码审查, code review, 后端代码质量, backend quality, review backend code, 检查代码质量, 审查代码, CR, code review checklist。
 ---
 
-# 后端代码质量审查
+# Backend Code Quality Review
 
-## 核心原则
+## Core Principles
 
-**深度优先于广度。** 宁可深入分析3个问题，不要浅尝辄止29个点。每个发现的问题必须：定位到具体代码行 → 解释为什么有问题 → 给出修改后的代码。
+**Depth over breadth.** Better to deeply analyze 3 issues than to superficially check 29 dimensions. Every found issue must: pinpoint the exact code line → explain why it's problematic → provide corrected code.
 
-**顺藤摸瓜，而非逐项打勾。** 有价值的问题往往藏在调用链上，而非单个函数里。先梳理关键路径，再沿着路径深挖，比按维度机械搜索更容易发现问题。
+**Follow the vine, don't checkbox.** Valuable issues often hide in the call chain, not in individual functions. First map out the critical paths, then dig deep along them — this is more effective than mechanically searching by dimension.
 
-## 审批标准
+## Approval Criteria
 
-**审查的目标是持续改善代码健康度，不是追求完美代码。**
+**The goal of review is continuous improvement of code health, not pursuit of perfect code.**
 
-| 总评 | 判定条件 |
-|------|----------|
-| 🔴 必须修复 | 存在 ❌ CRITICAL 级问题（数据正确性/安全隐患/生产可用性风险），修复后方可合并 |
-| 🟡 建议改进 | 存在 ⚠️ WARN 级问题但不阻塞合并，记录为 follow-up issue |
-| 🟢 通过 | 无 ❌ 级问题，代码改善了系统健康度。不要求完美，不因风格偏好拦截 |
+| Overall Verdict | Condition |
+|-----------------|-----------|
+| 🔴 Must Fix | Has ❌ CRITICAL level issues (data correctness / security risk / production availability), must be fixed before merge |
+| 🟡 Suggest Improvement | Has ⚠️ WARN level issues but does not block merge, record as follow-up issue |
+| 🟢 Pass | No ❌ level issues, code improves system health. Does not need to be perfect, do not block for style preferences |
 
-**拦截原则**：只拦截"不修会导致生产事故"的问题。风格偏好、更优写法建议用 💡 SUGGEST 标记，不阻塞合并。不要因为"这不是我会这么写"就拦截——如果它改善了代码库且遵循项目惯例，就批准它。
+**Blocking principle**: Only block issues that "would cause a production incident if not fixed." Style preferences and better-ways-to-write suggestions should be marked with 💡 SUGGEST, not blocking merge. Don't block just because "I wouldn't write it this way" — if it improves the codebase and follows project conventions, approve it.
 
-## 发现分级
+## Finding Severity Levels
 
-| 标记 | 含义 | 作者行动 |
-|------|------|----------|
-| ❌ CRITICAL | 阻塞合并 | 安全漏洞、数据正确性、生产可用性风险，必须修复 |
-| ⚠️ WARN | 建议改进 | 可在后续 PR 中处理，记录为 issue 追踪 |
-| 💡 SUGGEST | 可选建议 | 更优写法、风格建议，作者可忽略 |
-| ℹ️ INFO | 仅供了解 | 上下文信息，无需行动 |
-| ✅ GOOD | 值得肯定 | 良好实践，鼓励保持 |
+| Marker | Meaning | Author Action |
+|--------|---------|---------------|
+| ❌ CRITICAL | Blocks merge | Security vulnerabilities, data correctness, production availability risks — must fix |
+| ⚠️ WARN | Suggest improvement | Can be addressed in follow-up PRs, record as issue to track |
+| 💡 SUGGEST | Optional suggestion | Better way to write, style suggestions — author can ignore |
+| ℹ️ INFO | For your information | Context info, no action needed |
+| ✅ GOOD | Worth praising | Good practices, encourage maintaining |
 
-## 工作流程（必须遵循）
+## Workflow (Must Follow)
 
-### 第一步：确定审查范围与方向
+### Step 1: Determine Review Scope and Direction
 
-**根据用户意图灵活选择，不要机械执行。** 判断逻辑：
+**Flexibly choose based on user intent, don't mechanically execute.** Decision logic:
 
-| 用户意图 | 操作 | 是否需要问 |
-|----------|------|------------|
-| 已明确方向（如"审查并发安全"/"看看SQL有没有问题"） | 直接进入对应维度审查 | ❌ 不要问 |
-| 小改动（< 5 个文件）且无特定方向 | 快速全维度扫描 | ❌ 不要问 |
-| 大量代码且无特定方向 | **问一下**用户想重点审查哪个方向 | ✅ 问 |
+| User Intent | Action | Should You Ask? |
+|-------------|--------|-----------------|
+| Already has a clear direction (e.g., "review concurrency safety" / "check SQL issues") | Go directly to corresponding dimension review | ❌ Don't ask |
+| Small changes (< 5 files) and no specific direction | Quick full-dimension scan | ❌ Don't ask |
+| Large amount of code and no specific direction | **Ask** the user which direction they want to focus on | ✅ Ask |
 
-**需要问时，用 AskUserQuestion 呈现以下选项：**
+**When asking, present the following options via AskUserQuestion:**
 
-> **你想重点审查哪个方向？可多选。**
+> **Which direction(s) do you want to focus on? Multiple selections allowed.**
 >
-> | 选项 | 说明 | 涵盖维度 |
-> |------|------|----------|
-> | 🔧 代码基础 | 命名、函数职责、参数、控制流、魔法值、代码复用 | #1-#6 |
-> | 💪 健壮性与性能 | 数据库、并发、事务、数据增长、稳定性、日志 | #7-#12 |
-> | 🏗️ 架构与设计 | 分层、接口、配置分离 | #13-#15 |
-> | 🛡️ 容错与安全 | 幂等、熔断、重试、资源、输入校验、权限 | #16-#21 |
-> | 📊 数据与运维 | 缓存、监控与上下线、链路追踪 | #22-#24 |
-> | ✅ 测试与文档 | 测试、CR习惯、文档、易错点、兼容性 | #25-#29 |
+> | Option | Description | Covered Dimensions |
+> |--------|-------------|-------------------|
+> | 🔧 Code Fundamentals | Naming, function responsibilities, parameters, control flow, magic values, code reuse | #1-#6 |
+> | 💪 Robustness & Performance | Database, concurrency, transactions, data growth, stability, logging | #7-#12 |
+> | 🏗️ Architecture & Design | Layering, interfaces, config separation | #13-#15 |
+> | 🛡️ Fault Tolerance & Security | Idempotency, circuit breaker, retry, resources, input validation, permissions | #16-#21 |
+> | 📊 Data & Operations | Caching, monitoring & deployment, distributed tracing | #22-#24 |
+> | ✅ Testing & Documentation | Tests, CR habits, docs, pitfalls, compatibility | #25-#29 |
 
-用户选择后，**只读取选中方向对应的 reference 文件**。建议每次选 2-3 个方向以保证审查深度；选更多方向时深度会相应降低，请知悉。
+After user selection, **only read the reference files for selected directions**. It's recommended to select 2-3 directions to ensure review depth; selecting more directions will proportionally reduce depth.
 
-**审查模式选择**：
+**Review Mode Selection**:
 
-| 模式 | 适用场景 | 流程 |
-|------|----------|------|
-| ⚡ 快速审查 | 小变更（< 5 个文件）或用户说"快速看看" | 跳过第二步，直接按选定维度搜索 |
-| 🔍 深度审查 | 大量代码或用户要求仔细 review | 完整6步流程 |
+| Mode | Applicable Scenario | Process |
+|------|---------------------|---------|
+| ⚡ Quick Review | Small changes (< 5 files) or user says "quick look" | Skip step 2, search directly by selected dimensions |
+| 🔍 Deep Review | Large code changes or user requests thorough review | Full 6-step process |
 
-**维度分层**：不同领域的审查方式不同，不要对所有维度都套用重型流程。
+**Dimension Categories**: Different domains require different review approaches, don't apply heavy processes to all dimensions.
 
-| 类型 | 适用领域 | 特点 | 审查方式 |
-|------|----------|------|----------|
-| 🪶 轻量维度 | 🔧 代码基础（#1-#6）、✅ 测试与文档（#25-#29） | 局部问题，读代码即发现，不依赖调用链 | **直接扫描**：读代码 → 对照 reference checklist → 发现问题直接记录。不需要梳理调用链、场景推演、跨维度关联 |
-| 🔬 深度维度 | 💪 健壮性与性能（#7-#12）、🏗️ 架构与设计（#13-#15）、🛡️ 容错与安全（#16-#21）、📊 数据与运维（#22-#24） | 涉及运行时行为、跨层交互、数据流，需要理解上下文才能判断 | **完整流程**：梳理调用链 → 场景推演 → 跨维度关联检查 |
+| Type | Applicable Domains | Characteristics | Review Method |
+|------|-------------------|-----------------|---------------|
+| 🪶 Lightweight Dimensions | 🔧 Code Fundamentals (#1-#6), ✅ Testing & Docs (#25-#29) | Local issues, found by reading code, don't depend on call chains | **Direct scan**: Read code → Check against reference checklist → Record findings directly. No need to trace call chains, scenario simulation, or cross-dimension association |
+| 🔬 Deep Dimensions | 💪 Robustness & Performance (#7-#12), 🏗️ Architecture & Design (#13-#15), 🛡️ Fault Tolerance & Security (#16-#21), 📊 Data & Operations (#22-#24) | Involve runtime behavior, cross-layer interaction, data flow, require context to judge | **Full process**: Trace call chains → Scenario simulation → Cross-dimension association check |
 
-**执行规则**：
-- 如果用户只选了轻量维度 → 跳过第二步（调用链梳理）、第四步（跨维度关联）、第五步（缺失项检测），直接读代码扫描，输出报告
-- 如果用户选了深度维度 → 走完整 6 步流程，但其中混选的轻量维度仍然按直接扫描处理
-- 轻量维度发现问题通常是 💡 SUGGEST 或 ⚠️ WARN 级别，极少是 ❌ CRITICAL
+**Execution Rules**:
+- If user only selected lightweight dimensions → Skip step 2 (call chain tracing), step 4 (cross-dimension association), step 5 (missing item detection), directly read and scan code, output report
+- If user selected deep dimensions → Follow full 6-step process, but any lightweight dimensions mixed in should still be treated as direct scan
+- Lightweight dimension findings are typically 💡 SUGGEST or ⚠️ WARN level, rarely ❌ CRITICAL
 
-**变更大小评估**：确定审查范围时，同时评估变更规模：
+**Change Size Assessment**: When determining review scope, also assess change size:
 
-| 规模 | 变更行数 | 建议 |
-|------|----------|------|
-| 合理 | < 300 行 | 正常审查 |
-| 偏大 | 300-1000 行 | 建议用户拆分为多个 PR，每次聚焦一个逻辑变更 |
-| 过大 | > 1000 行 | 强烈建议拆分。提示："这个变更过大，难以保证审查深度。建议拆分后逐个审查。" |
+| Size | Changed Lines | Recommendation |
+|------|---------------|----------------|
+| Reasonable | < 300 lines | Normal review |
+| Large | 300-1000 lines | Suggest user split into multiple PRs, each focusing on one logical change |
+| Too Large | > 1000 lines | Strongly suggest splitting. Prompt: "This change is too large to guarantee review depth. Suggest splitting and reviewing individually." |
 
-**拆分策略**：
+**Splitting Strategy**:
 
-| 策略 | 方法 | 适用场景 |
-|------|------|----------|
-| 按文件组 | 将需要不同审查视角的文件分组提交 | 跨层变更 |
-| 按层次 | 先提交共享代码/接口定义，再提交消费者 | 分层架构 |
-| 按功能切片 | 拆成更小的全栈功能切片 | 功能开发 |
+| Strategy | Method | Applicable Scenario |
+|----------|--------|---------------------|
+| By File Groups | Group files needing different review perspectives | Cross-layer changes |
+| By Layers | First submit shared code / interface definitions, then submit consumers | Layered architecture |
+| By Feature Slices | Split into smaller full-stack feature slices | Feature development |
 
-**一个变更只做一件事**：重构和新功能分开提交，bugfix 和优化分开提交。小清理（变量重命名）可由审查者自行决定是否接受。
+**One change, one thing**: Refactoring and new features should be separate submissions, bugfix and optimization should be separate. Small cleanups (variable renaming) can be accepted at reviewer's discretion.
 
-### 第二步：梳理核心调用链 + 识别关键路径（仅深度维度需要执行）
+### Step 2: Map Core Call Chain + Identify Critical Paths (Only for Deep Dimensions)
 
-**不要急着按维度搜索。先花2-3分钟梳理出代码的核心调用路径。**
+**Don't rush to search by dimension. Spend 2-3 minutes mapping out the core call paths first.**
 
-用 Grep/Glob/ReadFile 工具做以下事情：
+Use Grep/Glob/ReadFile tools to:
 
-1. **识别项目语言和框架**，后续审查只关注对应语言的搜索模式
-2. **找到入口点**：Controller/Handler 的公开方法，或 MQ Consumer 的处理函数
-3. **沿调用链向下读**：入口 → Service → Repository/外部调用，逐层读代码
-4. **画出调用链**：用文本列出关键路径，例如：
+1. **Identify project language and framework**, subsequent review only focuses on corresponding language search patterns
+2. **Find entry points**: Public methods in Controller/Handler, or MQ Consumer processing functions
+3. **Read down the call chain**: Entry → Service → Repository/External calls, read code layer by layer
+4. **Draw the call chain**: List critical paths in text, e.g.:
 
 ```
 POST /orders
-  → OrderHandler.Create()          # 入口：参数校验、绑定
-    → OrderService.CreateOrder()    # 业务：库存检查、金额计算
-      → StockRepo.Deduct()          # DB：扣库存（先查后改？）
-      → PaymentService.Charge()     # RPC：外部支付调用（在事务内？）
-      → OrderRepo.Save()            # DB：保存订单
-    → MessageProducer.Publish()     # MQ：发消息（发送失败怎么办？）
+  → OrderHandler.Create()          # Entry: parameter validation, binding
+    → OrderService.CreateOrder()    # Business: stock check, amount calculation
+      → StockRepo.Deduct()          # DB: stock deduction (query then update?)
+      → PaymentService.Charge()     # RPC: external payment call (in transaction?)
+      → OrderRepo.Save()            # DB: save order
+    → MessageProducer.Publish()     # MQ: send message (what if send fails?)
 ```
 
-5. **标记高风险节点**：在调用链上标注以下类型的位置，后续优先深挖：
-   - **外部调用**（HTTP/RPC/MQ）→ 超时？熔断？失败处理？
-   - **事务边界**（Begin/Commit）→ 事务内有 IO？忘记回滚？
-   - **共享状态**（锁/全局变量/缓存）→ 竞态？一致性？
-   - **写操作**（Insert/Update/Delete）→ 幂等？数据增长？
-   - **错误分支**（if err / catch / except）→ 错误被吞？资源泄漏？
+5. **Mark high-risk nodes**: Annotate the following types of locations on the call chain for prioritized deep dive:
+   - **External calls** (HTTP/RPC/MQ) → Timeout? Circuit breaker? Failure handling?
+   - **Transaction boundaries** (Begin/Commit) → IO inside transaction? Forgot rollback?
+   - **Shared state** (locks/global variables/cache) → Race conditions? Consistency?
+   - **Write operations** (Insert/Update/Delete) → Idempotent? Data growth?
+   - **Error branches** (if err / catch / except) → Errors swallowed? Resource leaks?
 
-6. **输出关键路径摘要**：
+6. **Output critical path summary**:
 
 ```
-关键路径：POST /api/orders → OrderHandler.Create → OrderService.CreateOrder → tx.Begin → OrderRepo.Insert + StockRepo.Deduct → MQ.Publish → tx.Commit
-高风险节点：tx.Begin~tx.Commit（含 MQ.Publish）、StockRepo.Deduct（并发扣减）、MQ.Publish（发送失败处理）
+Critical Path: POST /api/orders → OrderHandler.Create → OrderService.CreateOrder → tx.Begin → OrderRepo.Insert + StockRepo.Deduct → MQ.Publish → tx.Commit
+High-risk nodes: tx.Begin~tx.Commit (includes MQ.Publish), StockRepo.Deduct (concurrent deduction), MQ.Publish (send failure handling)
 ```
 
-**⚠️ 必须输出调用链摘要后再继续。** 这一步是整个审查最有价值的环节，跳过会大幅降低审查质量。
+**⚠️ Must output call chain summary before continuing.** This step is the most valuable part of the review; skipping it significantly reduces review quality.
 
-**为什么这一步很重要？** 因为按维度搜索是"拿着锤子找钉子"——你会找到很多小问题，但容易漏掉跨层组合的大问题。先梳理调用链，你就能看到完整的数据流和控制流，发现诸如"事务里调了 RPC"、"先查后改没有原子保护"、"消息发送失败但事务已提交"这类跨维度问题。
+**Why is this step important?** Because searching by dimension is "carrying a hammer looking for nails" — you'll find many small issues but easily miss cross-layer combination issues. Mapping the call chain first lets you see the complete data flow and control flow, discovering cross-dimensional issues like "RPC called inside transaction", "query-then-update without atomic protection", or "message send fails but transaction already committed".
 
-### 第三步：深入审查（围绕关键路径 + 选定维度）
+### Step 3: Deep Dive (Around Critical Paths + Selected Dimensions)
 
-**只读取第一步确定的 reference 文件**。
+**Only read reference files determined in Step 1**.
 
-**轻量维度**（代码基础 #1-#6、测试与文档 #25-#29）：直接读代码，对照 reference checklist 逐项检查，发现问题记录即可，不需要场景推演。
+**Lightweight Dimensions** (Code Fundamentals #1-#6, Testing & Docs #25-#29): Directly read code, check against reference checklist item by item, record findings as you go, no need for scenario simulation.
 
-**深度维度**（健壮性与性能 #7-#12、架构与设计 #13-#15、容错与安全 #16-#21、数据与运维 #22-#24）：严格遵循以下步骤：
+**Deep Dimensions** (Robustness & Performance #7-#12, Architecture & Design #13-#15, Fault Tolerance & Security #16-#21, Data & Operations #22-#24): Strictly follow these steps:
 
-1. **扫描**：用 reference 中的搜索关键词 Grep 搜索代码
-2. **定位**：找到具体代码行，ReadFile 查看上下文
-3. **分析**：对照 references 中的检查清单逐项验证
-4. **场景推演**（这一步决定了审查深度）：对每个可疑点，**用具体场景推演**而非静态判断
+1. **Scan**: Use search keywords in reference to Grep search code
+2. **Locate**: Find specific code lines, ReadFile to view context
+3. **Analyze**: Check against references checklist item by item
+4. **Scenario Simulation** (this determines review depth): For each suspicious point, **use concrete scenario simulation** rather than static judgment
 
-**场景推演清单**：
+**Scenario Simulation Checklist**:
 
-| 维度 | 推演问题 |
-|------|----------|
-| 并发安全 | 100个请求同时执行这段代码，共享状态会怎样？ |
-| 事务 | 事务内的这个 RPC 超时了，DB 回滚了但下游已处理，状态一致吗？ |
-| 幂等 | 这个接口被重复调用3次，数据会变成什么样？ |
-| 数据增长 | 这个表数据量到1亿行，这个查询还能在1秒内返回吗？ |
-| 资源释放 | 如果这个函数在第X行报错，之前打开的连接/锁释放了吗？ |
-| 缓存 | 缓存刚好在查询和写入之间过期，会出现什么？ |
-| 重试 | 重试的第三次成功了，但前两次的副作用怎么处理？ |
-| 链路 | 用户反馈了一个bug，用日志能定位到具体哪个服务的哪行代码吗？ |
+| Dimension | Simulation Question |
+|-----------|---------------------|
+| Concurrency Safety | If 100 requests execute this code simultaneously, what happens to shared state? |
+| Transaction | If this RPC inside the transaction times out, DB rolls back but downstream already processed, is state consistent? |
+| Idempotency | If this API is called 3 times, what does the data look like? |
+| Data Growth | When this table reaches 100 million rows, will this query still return in 1 second? |
+| Resource Release | If this function errors at line X, are previously opened connections/locks released? |
+| Caching | If cache expires between query and write, what happens? |
+| Retry | Retry succeeds on the 3rd attempt, but what about the side effects of the first two? |
+| Tracing | User reports a bug, can logs pinpoint which service and which line of code? |
 
-**错误路径追踪要求**：
+**Error Path Tracing Requirements**:
 
-对每个 error/exception 分支，必须追问：
-- 错误是否被**静默吞掉**？（`if err != nil { return nil }` 或 `catch (e) {}`）
-- 事务是否在**错误路径上回滚**？（还是只 Commit 不 Rollback？）
-- 资源是否在**错误路径上释放**？（还是只处理了 happy path？）
-- 调用方是否能**正确处理这个错误**？（还是上游会 panic/crash？）
+For each error/exception branch, must ask:
+- Is the error **silently swallowed**? (`if err != nil { return nil }` or `catch (e) {}`)
+- Does transaction **rollback on error path**? (Or only Commit without Rollback?)
+- Are resources **released on error path**? (Or only happy path handled?)
+- Can caller **correctly handle this error**? (Or will upstream panic/crash?)
 
-5. **判断**：给出 ✅/⚠️/❌，附具体代码行号和原因
-6. **建议**：❌ 和 ⚠️ 必须给出修改后的完整代码片段
+5. **Judge**: Give ✅/⚠️/❌ with specific line numbers and reasons
+6. **Suggest**: ❌ and ⚠️ must provide complete corrected code snippets
 
-**禁止一句话带过。** 以下是错误示范和正确示范：
+**No one-liners allowed.** Below are wrong and right examples:
 
-> ❌ 错误："并发安全：未发现明显问题"
-> ✅ 正确："并发安全：搜索了 `sync.Mutex` 和 `Lock()` 发现 3 处加锁。其中 `service.go:142` 的 `UpdateStock` 方法存在 TOCTOU 问题——先查询库存再判断再扣减，两步操作未在同一个锁内，高并发下可能超卖。应改为 `SELECT ... FOR UPDATE` 或将判断与更新合并为单条 SQL：`UPDATE stock SET count = count - ? WHERE id = ? AND count >= ?`"
+> ❌ Wrong: "Concurrency safety: no obvious issues found"
+> ✅ Right: "Concurrency safety: searched `sync.Mutex` and `Lock()` and found 3 lock locations. The `UpdateStock` method at `service.go:142` has a TOCTOU issue — query stock then judge then deduct, two operations not within the same lock, may oversell under high concurrency. Should change to `SELECT ... FOR UPDATE` or merge judgment and update into single SQL: `UPDATE stock SET count = count - ? WHERE id = ? AND count >= ?`"
 
-**精力分配建议**：
-- 调用链梳理（第二步）：20% 时间
-- 高风险节点深挖：50% 时间
-- 其余维度扫描：20% 时间
-- 报告整理：10% 时间
+**Effort Allocation Suggestion**:
+- Call chain tracing (Step 2): 20% time
+- High-risk node deep dive: 50% time
+- Other dimension scanning: 20% time
+- Report organization: 10% time
 
-### 第四步：跨维度关联检查
+### Step 4: Cross-Dimension Association Check
 
-**审查完选中的维度后，必须做一次跨维度关联检查。** 回顾第二步的调用链，检查以下高风险组合：
+**After reviewing selected dimensions, must perform a cross-dimension association check.** Review the call chain from Step 2, check the following high-risk combinations:
 
-| 组合 | 要追问的问题 |
-|------|-------------|
-| 事务 + 外部调用 | 事务范围内是否包含 HTTP/RPC/MQ 调用？调用失败后事务回滚了吗？ |
-| 并发 + 数据库 | 先查后改是否在同一个锁/事务内？是否存在 TOCTOU？ |
-| 幂等 + 重试 | 重试的接口是否幂等？重复调用会不会导致重复扣款/发货？ |
-| 缓存 + 数据库 | 缓存更新策略是否正确？先更新DB再删缓存？异常路径下缓存和DB是否一致？ |
-| 消息队列 + 事务 | 消息发送和DB操作是否在同一个事务内？消息发送失败但DB已提交怎么办？ |
-| 输入校验 + SQL | 用户输入是否直接拼接到 SQL 中？参数化查询覆盖了吗？ |
-| 重试 + 限流 | 重试风暴是否会压垮下游？重试是否有退避策略？ |
-| 数据增长 + 内存 | 全量加载的数据在增长后是否会 OOM？分页/流式处理了吗？ |
+| Combination | Question to Ask |
+|-------------|-----------------|
+| Transaction + External Call | Does transaction scope include HTTP/RPC/MQ calls? Does transaction rollback on call failure? |
+| Concurrency + Database | Is query-then-update within the same lock/transaction? Is there TOCTOU? |
+| Idempotency + Retry | Is the retried interface idempotent? Will repeated calls cause duplicate charges/shipments? |
+| Cache + Database | Is cache update strategy correct? Update DB first then delete cache? On exception path are cache and DB consistent? |
+| Message Queue + Transaction | Are message sending and DB operations within the same transaction? What if message send fails but DB already committed? |
+| Input Validation + SQL | Is user input directly concatenated into SQL? Are parameterized queries covering everything? |
+| Retry + Rate Limiting | Will retry storm overwhelm downstream? Is there backoff strategy? |
+| Data Growth + Memory | Will fully loaded data cause OOM after growth? Is pagination/streaming used? |
 
-如果调用链上存在以上组合，即使对应的维度不在用户选择的范围内，也必须标记出来并在报告中说明。
+If any of the above combinations exist on the call chain, even if the corresponding dimension is not in the user's selected scope, must flag and explain in the report.
 
-### 第五步：缺失项检测
+### Step 5: Missing Item Detection
 
-**审查代码里"该有但没有"的东西。** 对比第二步标记的高风险节点，逐一检查：
+**Review what's "supposed to be there but isn't" in the code.** Compare against high-risk nodes marked in Step 2, check one by one:
 
-| 看到 | 必须检查是否有 | 缺失则标记 |
-|------|---------------|-----------|
-| 外部调用（HTTP/RPC） | 超时控制 + 错误处理 | ❌ 无超时/无错误处理 |
-| 事务 Begin | 事务内无 IO + 有 Rollback | ❌ 事务内混 IO / 无 Rollback |
-| 写操作（Insert/Update/Delete） | 幂等保护 | ❌ 无幂等 |
-| go func / 线程 / 协程 | 退出机制 | ❌ 无退出机制 |
-| 锁 Lock | 对应 Unlock（含 error 路径） | ❌ 锁泄漏 |
-| 错误处理 if err / catch | 日志记录 | ❌ 静默吞错 |
-| 缓存读取 | 缓存失效策略 + 防穿透 | ❌ 无 TTL / 无防穿透 |
-| 重试逻辑 | 可重试判断 + 退避策略 + 最大次数 | ❌ 盲目重试 |
-| 文件/连接打开 | defer/finally/with 关闭 | ❌ 资源泄漏 |
-| 核心业务逻辑 | 自动化测试 | ⚠️ 无测试覆盖 |
+| If You See | Must Check For | If Missing, Flag |
+|------------|----------------|------------------|
+| External call (HTTP/RPC) | Timeout control + error handling | ❌ No timeout / No error handling |
+| Transaction Begin | No IO inside transaction + has Rollback | ❌ IO mixed in transaction / No Rollback |
+| Write operation (Insert/Update/Delete) | Idempotent protection | ❌ No idempotency |
+| go func / thread / coroutine | Exit mechanism | ❌ No exit mechanism |
+| Lock Lock | Corresponding Unlock (including error path) | ❌ Lock leak |
+| Error handling if err / catch | Log recording | ❌ Silent error swallowing |
+| Cache read | Cache invalidation strategy + anti-penetration | ❌ No TTL / No anti-penetration |
+| Retry logic | Retriable judgment + backoff strategy + max count | ❌ Blind retry |
+| File/connection open | defer/finally/with close | ❌ Resource leak |
+| Core business logic | Automated test | ⚠️ No test coverage |
 
-### 第六步：输出报告
+### Step 6: Output Report
 
 ```markdown
-## 审查结果
+## Review Results
 
-### 总评：[🟢 通过 / 🟡 建议改进 / 🔴 必须修复]
+### Overall Verdict: [🟢 Pass / 🟡 Suggest Improvement / 🔴 Must Fix]
 
-### 关键路径
+### Critical Path
 POST /api/orders → OrderHandler.Create → OrderService.CreateOrder → ...
-高风险节点：tx.Begin~tx.Commit（含 MQ.Publish）、StockRepo.Deduct（并发扣减）
+High-risk nodes: tx.Begin~tx.Commit (includes MQ.Publish), StockRepo.Deduct (concurrent deduction)
 
-### 核心调用链
-（列出第二步梳理的调用链，标注发现问题的位置）
+### Core Call Chain
+(List call chain from Step 2, annotate locations where issues were found)
 
-### 深度发现
+### Deep Findings
 
-#### ❌ [CRITICAL] 并发竞态 — service.go:142 UpdateStock
-**问题**：先查询再扣减不在同一锁内，TOCTOU 问题
-**推演**：100个并发请求同时执行，线程A查到库存=1，线程B也查到库存=1，都判断通过，扣减两次变成-1
-**影响**：超卖，直接资金损失
-**修复**：
-​```go
+#### ❌ [CRITICAL] Race Condition — service.go:142 UpdateStock
+**Issue**: Query then deduct not within the same lock, TOCTOU issue
+**Simulation**: 100 concurrent requests execute simultaneously, thread A reads stock=1, thread B also reads stock=1, both pass judgment, deduct twice resulting in -1
+**Impact**: Oversell, direct financial loss
+**Fix**:
+```go
 // Before
 stock := s.repo.GetStock(ctx, sku)
 if stock.Count >= qty {
     s.repo.DeductStock(ctx, sku, qty)
 }
 // After
-affected, err := s.repo.DeductStockIfEnough(ctx, sku, qty) // 单条 SQL 原子操作
-​```
-
-#### ⚠️ [WARN] 魔法数字 — handler.go:58
-...
-
-#### ✅ [GOOD] 事务使用 — order.go:200
-事务范围最小化，仅包含两条 INSERT，无外部调用...
-
-### 缺失项
-| 看到 | 缺失 | 位置 | 严重程度 |
-|------|------|------|----------|
-| 外部调用 paymentService.charge | 无超时控制 | service.go:89 | ❌ |
-| goroutine go processOrder | 无退出机制 | worker.go:45 | ❌ |
-| 错误处理 if err != nil | 无日志记录 | handler.go:33 | ⚠️ |
-
-### 跨维度关联风险
-（列出第四步发现的跨维度问题）
-
-### 维度检查汇总
-| # | 维度 | 状态 | 位置 | 备注 |
-|---|------|------|------|------|
-| 1 | 命名规范 | ✅ | — | |
-| 17 | 并发安全 | ❌ | service.go:142 | TOCTOU |
-| 23 | 日志规范 | ⚠️ | logger.go:30 | 缺 trace_id |
+affected, err := s.repo.DeductStockIfEnough(ctx, sku, qty) // single SQL atomic operation
 ```
 
-**❌ 问题按修复优先级排序**：安全漏洞 > 数据正确性 > 生产可用性 > 性能 > 可维护性
+#### ⚠️ [WARN] Magic Number — handler.go:58
+...
 
-## 六大审查领域索引
+#### ✅ [GOOD] Transaction Usage — order.go:200
+Transaction scope minimized, only contains two INSERTs, no external calls...
 
-| 领域 | 维度 | Reference |
-|------|------|-----------|
-| 一、代码基础 | #1-#6 命名、函数职责、参数、控制流、魔法值、代码复用 | [domain-basics.md](references/domain-basics.md) |
-| 二、健壮性与性能 | #7-#12 数据库与批量、并发、事务、数据增长、稳定性、日志 | [domain-robustness.md](references/domain-robustness.md) |
-| 三、架构与设计 | #13-#15 分层、接口、配置分离 | [domain-architecture.md](references/domain-architecture.md) |
-| 四、容错与安全 | #16-#21 幂等、熔断、重试、资源、输入校验、权限 | [domain-fault-tolerance.md](references/domain-fault-tolerance.md) |
-| 五、数据与运维 | #22-#24 缓存、监控与上下线、链路追踪 | [domain-data-ops.md](references/domain-data-ops.md) |
-| 六、测试与文档 | #25-#29 测试、CR习惯、文档、易错点、兼容性 | [domain-testing-docs.md](references/domain-testing-docs.md) |
+### Missing Items
+| If You See | Missing | Location | Severity |
+|------------|---------|----------|----------|
+| External call paymentService.charge | No timeout control | service.go:89 | ❌ |
+| goroutine go processOrder | No exit mechanism | worker.go:45 | ❌ |
+| Error handling if err != nil | No log recording | handler.go:33 | ⚠️ |
 
-## 关键提醒
+### Cross-Dimension Association Risks
+(List cross-dimensional issues found in Step 4)
 
-- **根据用户意图灵活选择**：已明确方向就别再问，大量代码且无方向才需要问
-- **深度审查时必须先识别关键路径**，围绕高风险节点深挖，而非平均分配精力
-- **轻量维度（代码基础、测试与文档）直接扫描**，不需要梳理调用链和场景推演
-- 用户选什么就审什么，只加载对应的 reference 文件
-- 一定要用工具（Grep/ReadFile）实际检查代码，不要靠猜测
-- **深度维度的 ❌ 必须包含场景推演**：假设 X 发生，会怎样
-- 每个 ❌ 必须附带修复代码，不能只说"建议优化"
-- **错误路径和缺失项是最容易出问题的地方**，务必重点检查
-- 如果某个维度不适用于当前代码，标注 N/A 并说明原因
-- **跨维度关联检查不能跳过**，即使维度不在用户选择范围内也要标记风险
+### Dimension Check Summary
+| # | Dimension | Status | Location | Notes |
+|---|-----------|--------|----------|-------|
+| 1 | Naming Conventions | ✅ | — | |
+| 17 | Concurrency Safety | ❌ | service.go:142 | TOCTOU |
+| 23 | Logging Standards | ⚠️ | logger.go:30 | Missing trace_id |
+```
 
-## 审查诚信
+**❌ Issues sorted by fix priority**: Security vulnerability > Data correctness > Production availability > Performance > Maintainability
 
-- **不要走过场。** “未发现明显问题”必须附带你实际搜索了什么、看了哪些文件。没有证据的“LGTM”等于没审。
-- **不要淡化真实问题。** 是 bug 就说是 bug，不要用“可能需要注意”来描述一个会导致资金损失的问题。
-- **量化问题。** “这个 N+1 查询，列表 100 条时会增加约 50 次数据库查询”优于“这里有性能问题”。能量化就量化。
-- **警惕常见借口：**
-  - “能跑就行” → 能跑但不可读/不安全的代码，技术债会复利增长
-  - “测试通过了” → 测试是必要条件，不是充分条件。测试通过不代表没有架构、安全、可读性问题
-  - “AI 生成的代码应该没问题” → AI 代码需要更严格的审查，它自信但可能是错的
-  - “我稍后清理” → 经验表明“稍后”永远不会来。要求在当前变更中清理，或创建 issue 并自分配
-- **对代码不对人。** 审查意见针对代码本身，不针对作者。用“这段代码存在竞态”而非“你写了不安全的代码”。
+## Six Review Domain Index
+
+| Domain | Dimensions | Reference |
+|--------|-----------|-----------|
+| I. Code Fundamentals | #1-#6 Naming, Function Responsibility, Parameters, Control Flow, Magic Values, Code Reuse | [domain-basics.md](references/domain-basics.md) |
+| II. Robustness & Performance | #7-#12 Database & Batch, Concurrency, Transaction, Data Growth, Stability, Logging | [domain-robustness.md](references/domain-robustness.md) |
+| III. Architecture & Design | #13-#15 Layering, Interface, Config Separation | [domain-architecture.md](references/domain-architecture.md) |
+| IV. Fault Tolerance & Security | #16-#21 Idempotency, Circuit Breaker, Retry, Resources, Input Validation, Permissions | [domain-fault-tolerance.md](references/domain-fault-tolerance.md) |
+| V. Data & Operations | #22-#24 Caching, Monitoring & Deployment, Distributed Tracing | [domain-data-ops.md](references/domain-data-ops.md) |
+| VI. Testing & Documentation | #25-#29 Testing, CR Habits, Documentation, Pitfalls, Compatibility | [domain-testing-docs.md](references/domain-testing-docs.md) |
+
+## Key Reminders
+
+- **Flexibly choose based on user intent**: If direction is already clear, don't ask again; only ask when there's a large amount of code and no direction
+- **Deep review must first identify critical paths**, dig deep around high-risk nodes, rather than evenly distributing effort
+- **Lightweight dimensions (code fundamentals, testing & docs) get direct scan**, no need to trace call chains or simulate scenarios
+- Review what the user selected, only load corresponding reference files
+- Must use tools (Grep/ReadFile) to actually check code, don't guess
+- **❌ for deep dimensions must include scenario simulation**: If X happens, what then
+- Each ❌ must come with corrected code, cannot just say "suggest optimization"
+- **Error paths and missing items are where issues most easily hide**, must check carefully
+- If a dimension doesn't apply to current code, mark N/A and explain why
+- **Cross-dimension association check cannot be skipped**, even if dimensions aren't in user's selection scope, risks must be flagged
+
+## Review Integrity
+
+- **Don't go through the motions.** "No obvious issues found" must be accompanied by what you actually searched and which files you reviewed. "LGTM" without evidence is no review.
+- **Don't downplay real issues.** If it's a bug, call it a bug. Don't use "might need attention" to describe an issue that could cause financial loss.
+- **Quantify issues.** "This N+1 query adds about 50 extra database queries when listing 100 items" is better than "there's a performance issue here." Quantify whenever possible.
+- **Beware common excuses:**
+  - "It works" → Code that works but is unreadable/unsafe will accumulate technical debt that compounds
+  - "Tests passed" → Tests are necessary, not sufficient. Passing tests don't mean there are no architecture, security, or readability issues
+  - "AI-generated code should be fine" → AI code needs stricter review; it's confident but can be wrong
+  - "I'll clean it up later" → Experience shows "later" never comes. Require cleanup in the current change, or create an issue and self-assign it
+- **Review code, not people.** Review comments target the code itself, not the author. Use "this code has a race condition" rather than "you wrote unsafe code".

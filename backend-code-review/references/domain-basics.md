@@ -1,129 +1,129 @@
-# 一、代码基础
+# I. Code Fundamentals
 
-## 目录
-- [1. 命名规范](#1-命名规范)
-- [2. 函数职责单一](#2-函数职责单一)
-- [3. 参数精简](#3-参数精简)
-- [4. 控制流扁平化](#4-控制流扁平化)
-- [5. 消除魔法值](#5-消除魔法值)
-- [6. 代码复用与去重](#6-代码复用与去重)
-
----
-
-## 1. 命名规范
-
-### 搜索模式
-
-搜索关键词：tmp, temp, ret, data, info, result, obj, val, buf, num
-适用文件：*.go, *.java, *.py, *.rs, *.ts, *.tsx
-
-### 检查清单
-- [ ] 变量名是否表达了业务含义（`orderCount` 而非 `cnt`）
-- [ ] 函数名是否是动词短语（`GetUserByID` / `getUserById` / `get_user_by_id`）
-- [ ] bool 变量是否以 `is/has/can/should` 开头
-- [ ] 常量是否按语言规范命名（Go: PascalCase, Java: UPPER_SNAKE, Python: UPPER_SNAKE）
-- [ ] 文件名是否反映了内容（`user_service.go` / `UserService.java` / `user_service.py` / `user_service.rs`）
-- [ ] 是否存在 `data1, data2, result1, result2` 这类编号命名
-
-### 深挖方法
-1. 找到每个可疑命名
-2. 追踪该变量在函数中的使用链路，确认是否能从上下文理解含义
-3. 给出具体的重命名建议
-
-### 场景推演
-
-对每个模糊命名（如 `data`、`result`、`info`），追问：
-
-- **六个月后你还能看懂吗？** 如果一个变量叫 `data`，你需要在函数内来回滚动才能理解它是什么，那就该重命名
-- **代码审查时会不会误解？** `result` 到底是成功结果还是错误结果？`info` 是用户信息还是订单信息？
-- **grep 能精准定位吗？** 搜 `data` 会匹配到满屏结果，搜 `orderConfirmData` 只会匹配到你想要的地方
-- **新同事能看懂吗？** 看到 `result2`，能否在不看上下文的情况下知道它代表什么？
-
-> **深挖信号**：如果一个函数内有多个 `data`/`result`/`info` 变量，这通常意味着函数做了太多事，应结合 #2 函数职责单一一起审视。
+## Table of Contents
+- [1. Naming Conventions](#1-naming-conventions)
+- [2. Single Function Responsibility](#2-single-function-responsibility)
+- [3. Parameter Minimization](#3-parameter-minimization)
+- [4. Control Flow Flattening](#4-control-flow-flattening)
+- [5. Eliminate Magic Values](#5-eliminate-magic-values)
+- [6. Code Reuse & Deduplication](#6-code-reuse--deduplication)
 
 ---
 
-## 2. 函数职责单一
+## 1. Naming Conventions
 
-### 搜索模式
+### Search Patterns
 
-语言特定函数定义：Go `func`、Java `public/private/protected`、Python `def`、Rust `fn`、TypeScript `function`/`=>`/`async`
-多职责信号：函数名中包含 `and`/`or`（如 `CreateAndSend`、`parse_or_default`）
-适用文件：*.go, *.java, *.py, *.rs, *.ts, *.tsx
+Search keywords: tmp, temp, ret, data, info, result, obj, val, buf, num
+Applicable files: *.go, *.java, *.py, *.rs, *.ts, *.tsx
 
-### 检查清单
-- [ ] 函数是否超过 50 行（超过需警惕）
-- [ ] 函数名是否暗示多个动作（`CreateAndSendEmail` / `create_and_send_email`）
-- [ ] 函数内是否有不同抽象层级的操作混在一起
-- [ ] 函数内是否有一段代码可以提取为独立函数并复用
+### Checklist
+- [ ] Do variable names express business meaning (`orderCount` instead of `cnt`)
+- [ ] Are function names verb phrases (`GetUserByID` / `getUserById` / `get_user_by_id`)
+- [ ] Do bool variables start with `is/has/can/should`
+- [ ] Are constants named per language convention (Go: PascalCase, Java: UPPER_SNAKE, Python: UPPER_SNAKE)
+- [ ] Do file names reflect content (`user_service.go` / `UserService.java` / `user_service.py` / `user_service.rs`)
+- [ ] Are there numbered names like `data1, data2, result1, result2`
 
-### 深挖方法
-1. 对超过50行的函数，逐段标注每段做什么
-2. 如果一段代码超过10行且与前后逻辑独立，建议提取
-3. 给出拆分后的函数签名示例
+### Deep Dive Method
+1. Find each suspicious name
+2. Trace the variable's usage chain in the function, confirm if meaning can be understood from context
+3. Give specific renaming suggestions
 
-### 场景推演
+### Scenario Simulation
 
-对每个超长函数，追问：
+For each vague name (e.g., `data`, `result`, `info`), ask:
 
-- **改其中一个职责时，会不会误伤另一个？** 比如 `CreateAndSendOrder` 里改了发送逻辑，不小心影响了创建逻辑
-- **测试时能单独测其中一个行为吗？** 如果不能，说明耦合太紧
-- **调用方真的需要同时做这两件事吗？** 有些场景只需要创建不需要发送
-- **报错时能快速定位吗？** 如果函数报错了，你能从函数名快速定位是哪个职责出了问题吗？
+- **Will you still understand this in six months?** If a variable is called `data`, you need to scroll back and forth in the function to understand what it is, it should be renamed
+- **Will it be misunderstood during code review?** Is `result` a success result or error result? Is `info` user info or order info?
+- **Can grep pinpoint it?** Searching `data` matches the entire screen; searching `orderConfirmData` only matches where you want
+- **Can a new teammate understand it?** Seeing `result2`, can they know what it represents without reading context?
 
-> **深挖信号**：函数内出现"段落注释"（`// 第一步：创建订单`、`// 第二步：发送通知`），说明它在做两件独立的事。如果段落之间有共享状态（临时变量），那拆分时要特别注意数据传递方式。结合 #13 分层 检查是否不同抽象层级的操作混在了一起。
-
----
-
-## 3. 参数精简
-
-### 搜索模式
-
-多参数信号：函数签名中出现 4 个及以上参数（正则匹配 `..., ..., ..., ...`）
-bool 参数：`bool`（Go/Python）、`boolean`/`Boolean`（Java）出现在参数列表中
-适用文件：*.go, *.java, *.py, *.rs, *.ts
-
-### 检查清单
-- [ ] 参数是否超过3个
-- [ ] 是否有 bool 参数控制 if-else 分支（应拆为两个函数）
-- [ ] 同一组参数是否在多个函数中重复出现（应封装为结构体/DTO/dataclass）
-- [ ] 参数顺序是否符合语言惯例（Go: ctx 在前, Java: request 在前, Python: self 在前）
-
-### 深挖方法
-1. 对超过3个参数的函数，分析哪些参数天然属于一组
-2. 给出封装建议：Go 用 struct, Java 用 DTO/RequestObject, Python 用 dataclass, Rust 用 struct
-3. 对 bool 参数，给出拆分后的两个函数签名
-
-### 场景推演
-
-- **调用方传错参数时，编译器能发现吗？** `SendEmail(user, subject, body, true, false)` —— 第4个和第5个 bool 参数调换位置，编译器不会报错，但行为完全不同
-- **新增参数时，所有调用方都要改吗？** 参数越多，新增参数的改动面越大
-- **bool 参数的两个分支，错误处理一样吗？** 如果不一样，说明本来就该是两个函数
-
-> **深挖信号**：如果同一组参数在多个函数中反复出现（如 `userID, orderID, amount`），这不仅是一个参数精简问题，还可能意味着缺少一个领域对象（如 `OrderContext`）。结合 #13 分层 和 #14 面向接口 检查是否缺少必要的抽象。
+> **Deep dive signal**: If a function has multiple `data`/`result`/`info` variables, it usually means the function does too much. Combine with #2 Single Function Responsibility for review.
 
 ---
 
-## 4. 控制流扁平化
+## 2. Single Function Responsibility
 
-### 搜索模式
+### Search Patterns
 
-深层嵌套：3层及以上缩进（tab 或 8+ spaces）
-else 分支：`} else {`（Go/Java）、`else:`（Python）
-适用文件：*.go, *.java, *.py, *.rs, *.ts, *.tsx
+Language-specific function definitions: Go `func`, Java `public/private/protected`, Python `def`, Rust `fn`, TypeScript `function`/`=>`/`async`
+Multi-responsibility signal: function name contains `and`/`or` (e.g., `CreateAndSend`, `parse_or_default`)
+Applicable files: *.go, *.java, *.py, *.rs, *.ts, *.tsx
 
-### 检查清单
-- [ ] 是否存在超过2层嵌套的 if-else
-- [ ] 是否可以提前 return/break/continue 减少嵌套
-- [ ] 错误处理是否在正常逻辑之前（guard clause 模式）
-- [ ] 是否有复杂的条件表达式可提取为有意义的 bool 变量
+### Checklist
+- [ ] Does function exceed 50 lines (alert if so)
+- [ ] Does function name imply multiple actions (`CreateAndSendEmail` / `create_and_send_email`)
+- [ ] Are operations of different abstraction levels mixed in the function
+- [ ] Is there a code segment that can be extracted as an independent and reusable function
 
-### 深挖方法
-1. 对每个深层嵌套，画出控制流结构
-2. 展示如何用 guard clause 重写
-3. 对比重写前后的可读性
+### Deep Dive Method
+1. For functions over 50 lines, annotate what each segment does
+2. If a segment exceeds 10 lines and is logically independent from surrounding code, suggest extraction
+3. Give example function signatures after splitting
 
-**Go 示例：**
+### Scenario Simulation
+
+For each overly long function, ask:
+
+- **Will changing one responsibility accidentally break another?** E.g., in `CreateAndSendOrder`, changing send logic accidentally affects creation logic
+- **Can each behavior be tested independently?** If not, coupling is too tight
+- **Does the caller really need both things at once?** Some scenarios only need creation without sending
+- **Can you quickly locate issues when it errors?** If the function errors, can you quickly determine which responsibility caused it from the function name?
+
+> **Deep dive signal**: "Paragraph comments" in functions (`// Step 1: create order`, `// Step 2: send notification`) indicate it's doing two independent things. If paragraphs share state (temporary variables), pay special attention to data transfer when splitting. Combine with #13 Layering to check if operations of different abstraction levels are mixed.
+
+---
+
+## 3. Parameter Minimization
+
+### Search Patterns
+
+Multi-parameter signal: 4 or more parameters in function signature (regex match `..., ..., ..., ...`)
+Bool parameter: `bool` (Go/Python), `boolean`/`Boolean` (Java) appearing in parameter list
+Applicable files: *.go, *.java, *.py, *.rs, *.ts
+
+### Checklist
+- [ ] Are there more than 3 parameters
+- [ ] Are there bool parameters controlling if-else branches (should be split into two functions)
+- [ ] Do the same group of parameters appear repeatedly across multiple functions (should be encapsulated as struct/DTO/dataclass)
+- [ ] Is parameter order consistent with language convention (Go: ctx first, Java: request first, Python: self first)
+
+### Deep Dive Method
+1. For functions with more than 3 parameters, analyze which parameters naturally belong together
+2. Give encapsulation suggestions: Go uses struct, Java uses DTO/RequestObject, Python uses dataclass, Rust uses struct
+3. For bool parameters, give two function signatures after splitting
+
+### Scenario Simulation
+
+- **Can the compiler catch parameter swap errors?** `SendEmail(user, subject, body, true, false)` — swapping the 4th and 5th bool parameters, compiler won't complain, but behavior is completely different
+- **Do all callers need to change when adding a parameter?** More parameters mean larger change surface when adding new ones
+- **Are error handling paths the same for both bool branches?** If different, they should be two functions
+
+> **Deep dive signal**: If the same group of parameters repeatedly appears in multiple functions (e.g., `userID, orderID, amount`), this is not just a parameter minimization issue — it may indicate a missing domain object (e.g., `OrderContext`). Combine with #13 Layering and #14 Interface-Oriented Programming to check if necessary abstractions are missing.
+
+---
+
+## 4. Control Flow Flattening
+
+### Search Patterns
+
+Deep nesting: 3 or more indentation levels (tab or 8+ spaces)
+Else branch: `} else {` (Go/Java), `else:` (Python)
+Applicable files: *.go, *.java, *.py, *.rs, *.ts, *.tsx
+
+### Checklist
+- [ ] Is there if-else nesting deeper than 2 levels
+- [ ] Can early return/break/continue reduce nesting
+- [ ] Is error handling before normal logic (guard clause pattern)
+- [ ] Are there complex conditional expressions that can be extracted as meaningful bool variables
+
+### Deep Dive Method
+1. For each deep nesting, draw the control flow structure
+2. Show how to rewrite with guard clause
+3. Compare readability before and after rewrite
+
+**Go Example:**
 ```go
 // Bad
 if err == nil {
@@ -138,7 +138,7 @@ if user == nil { return nil }
 // happy path
 ```
 
-**Java 示例：**
+**Java Example:**
 ```java
 // Bad
 if (result != null) {
@@ -153,7 +153,7 @@ if (!result.isValid()) { return; }
 // happy path
 ```
 
-**Python 示例：**
+**Python Example:**
 ```python
 # Bad
 if data is not None:
@@ -168,138 +168,138 @@ if not data.is_valid():
 # happy path
 ```
 
-### 场景推演
+### Scenario Simulation
 
-对每个深层嵌套，追问：
+For each deep nesting, ask:
 
-- **每个分支的异常路径都处理了吗？** 嵌套越深，越容易遗漏某个分支的错误处理
-- **happy path 是不是藏在了最内层？** 如果读代码需要滚动到最深处才能看到正常逻辑，说明嵌套有问题
-- **哪个分支最可能出 bug？** 嵌套中的 else 分支往往是最少被测试的，也最容易藏 bug
-- **要加一个条件呢？** 4层 if 中如果要加条件，要在第几层加？加完后可读性会怎样？
+- **Is every branch's error path handled?** The deeper the nesting, the easier to miss error handling for some branch
+- **Is the happy path hidden in the innermost layer?** If you need to scroll to the deepest level to see normal logic, nesting is problematic
+- **Which branch is most likely to have bugs?** Else branches in nested code are least tested and most likely to hide bugs
+- **What if you need to add a condition?** In 4-layer if, which layer do you add to? What happens to readability after adding?
 
-> **深挖信号**：深层嵌套往往伴随着隐含的业务规则。`if A then if B then if C` 实际上是一个业务条件 `A && B && C`，但它被拆成了三层。这不仅影响可读性，还意味着如果 B 失败了，开发者可能忘记处理。结合 #28 易错点自问 检查每个分支的错误路径是否都有处理。
-
----
-
-## 5. 消除魔法值
-
-### 搜索模式
-
-硬编码数字：非 0/1/-1 的裸数字出现在条件或赋值中
-硬编码字符串：`"..."` 赋值但无 `final`/`static final`/枚举修饰
-适用文件：*.go, *.java, *.py, *.rs, *.ts
-
-### 检查清单
-- [ ] 数字常量是否有命名（`maxRetryCount` 而非 `3`）
-- [ ] 状态/类型是否用枚举/常量组定义
-- [ ] 错误码是否有常量定义
-- [ ] 超时时间、重试次数等配置值是否可配置
-- [ ] Go: 是否用 `const` 或 `iota`；Java: 是否用 `enum`；Python: 是否用 `Enum` 类
-
-### 深挖方法
-1. 列出所有硬编码值
-2. 分析哪些是真正的魔法数字，哪些是数学上固定的（如 `*2`, `/2`）
-3. 给出对应语言的常量/枚举定义代码
-
-### 场景推演
-
-对每个魔法值，追问：
-
-- **业务规则变了，要改几个地方？** 状态码 `3` 出现在 5 个文件中，业务说"已取消"要改成 `4`，你能确保全部改到吗？
-- **这个数字的含义，新人能看懂吗？** `if status == 3` vs `if status == OrderStatus.Cancelled`
-- **这个超时时间在不同环境下都合理吗？** 本地测试 3 秒够了，生产环境可能需要 10 秒。硬编码意味着无法按环境调整
-- **同数字不同含义？** 另一个开发者也用了 `3` 但代表不同的业务含义，搜索时会怎样？
-
-> **深挖信号**：如果硬编码的数字用于状态判断，检查是否有遗漏的状态值。比如代码只处理了 `status == 1` 和 `status == 2`，但数据库里实际有 3 种状态，第 3 种状态会被默认逻辑错误处理。结合 #10 数据增长敏感性 和 #28 易错点自问 中的"边界"检查。
+> **Deep dive signal**: Deep nesting often accompanies implicit business rules. `if A then if B then if C` is actually a business condition `A && B && C`, but split into three layers. This not only affects readability but also means if B fails, the developer may forget to handle it. Combine with #28 Pitfall Self-Check to verify if every branch's error path is handled.
 
 ---
 
-## 6. 代码复用与去重
+## 5. Eliminate Magic Values
 
-> **核心关注点**：消除复制粘贴式的重复代码，提炼通用的逻辑和模式，降低维护成本（一处修改多处生效）。
+### Search Patterns
 
-### 搜索模式
+Hard-coded numbers: bare numbers other than 0/1/-1 in conditions or assignments
+Hard-coded strings: `"..."` assignment without `final`/`static final`/enum modifier
+Applicable files: *.go, *.java, *.py, *.rs, *.ts
 
-重复错误处理：`if err != nil`（Go）、`catch (`（Java）、`except `（Python）在同一文件中高频出现
-重复校验逻辑：required, @NotNull, @NotBlank, validate 等关键词
-重复 CRUD 模板：Create/Update/Delete 函数签名高度相似
-重复工具函数：Is/Has/Check/Parse/Format 开头的函数在多处有相同实现
-重复配置常量：const, static final, MAX_, MIN_, DEFAULT_ 在多处定义
-适用文件：*.go, *.java, *.py, *.rs, *.ts
+### Checklist
+- [ ] Do numeric constants have names (`maxRetryCount` instead of `3`)
+- [ ] Are states/types defined with enum/constant groups
+- [ ] Do error codes have constant definitions
+- [ ] Are timeout values, retry counts, etc. configurable
+- [ ] Go: uses `const` or `iota`; Java: uses `enum`; Python: uses `Enum` class
 
-### 检查清单
+### Deep Dive Method
+1. List all hard-coded values
+2. Analyze which are true magic numbers and which are mathematically fixed (e.g., `*2`, `/2`)
+3. Give corresponding language constant/enum definition code
 
-#### 代码块重复
-- [ ] 是否有复制粘贴的代码块（3行以上相同或高度相似）
-- [ ] 多个函数中是否有相同的错误处理模式（应抽取中间件或公共包装器）
-- [ ] 多个接口中是否有相同的参数校验逻辑（应抽取公共校验函数）
+### Scenario Simulation
 
-#### 业务逻辑重复
-- [ ] 同一业务规则是否在多个地方重复实现（如订单状态判断、权限检查）
-- [ ] 相似的分支条件是否出现在多个函数中（应统一为策略/状态机）
-- [ ] 数据转换逻辑（DTO ↔ Model）是否有大量重复的字段映射
+For each magic value, ask:
 
-#### 模板代码冗余
-- [ ] CRUD 操作是否每个实体都写一遍相同的模板代码（应考虑泛型基类/代码生成）
-- [ ] Repository/DAO 层是否有大量相似的增删改查方法
-- [ ] 是否可以用泛型/模板方法模式减少重复
+- **If business rules change, how many places need updating?** Status code `3` appears in 5 files, business says "cancelled" should change to `4`, can you ensure all are updated?
+- **Can a newcomer understand this number's meaning?** `if status == 3` vs `if status == OrderStatus.Cancelled`
+- **Is this timeout reasonable across all environments?** 3 seconds is enough for local testing, production may need 10 seconds. Hard-coding means it can't be adjusted per environment
+- **Same number, different meaning?** Another developer also used `3` but represents a different business meaning, what happens when searching?
 
-#### 配置与定义重复
-- [ ] 相同的常量/配置是否在多个文件中重复定义
-- [ ] 相同的错误码/状态码是否分散在多处
-- [ ] 相同的 struct/class 定义是否可以合并
-
-### 深挖方法
-
-1. **定位重复**：按文件分组统计，高频模式即为重复信号
-
-2. **分析复用价值**（不是所有重复都需要消除）：
-   - 两处相同且业务相关度高 → 必须抽取
-   - 两处相似但上下文不同 → 先合并抽象再看
-   - 两处相同但各自独立演进的可能性大 → 可以暂时保留
-
-3. **给出重构建议**：
-   - 重复代码块 → 提取为公共函数，参数化差异部分
-   - 重复错误处理 → 抽取中间件或 `WrapHandler` 包装器
-   - 重复校验 → 抽取公共校验函数或校验标签
-   - 重复业务逻辑 → 统一到 Service 层或领域模型中
-   - 重复 CRUD → 用泛型基类（Go: 泛型 + 接口; Java: 泛型 Repository; Python: 抽象基类）
-   - 重复常量 → 集中到 constants 包/类中
-
-### 场景推演
-
-对每组重复代码，追问：
-
-- **修改一边忘了改另一边，会发生什么？** 这是重复代码最大的风险。比如支付校验逻辑在两个 Service 里各有一份，后来加了优惠码校验但只改了一处
-- **两份"相同"的代码，细节上有没有微妙差异？** 看起来一样的代码，可能在边界条件处理、错误码返回上有细微差别。这种差异往往是有意为之（合并时要保留）还是无意产生的（合并时以哪份为准？）
-- **重复的业务规则是否意味着领域模型缺失？** 如果"订单状态流转"的逻辑散落在 5 个地方，可能不是代码复用的问题，而是缺少一个 `OrderStateMachine` 领域对象
-
-> **深挖信号**：重复代码最危险的不是维护成本，而是**一致性风险**。当一份重复的业务逻辑被修改了但另一份没有，就产生了隐性 bug。结合 #16 幂等设计 检查重复的写操作逻辑是否一致，结合 #28 易错点自问 检查重复的边界条件处理是否一致。
+> **Deep dive signal**: If hard-coded numbers are used for status judgment, check if status values are missed. E.g., code only handles `status == 1` and `status == 2`, but DB actually has 3 statuses, the 3rd status gets wrong default handling. Combine with #10 Data Growth Sensitivity and #28 Pitfall Self-Check for "boundary" checks.
 
 ---
 
-## 常见缺失对照表
+## 6. Code Reuse & Deduplication
 
-| 看到 | 必须检查是否有 | 缺失则标记 |
-|------|---------------|-----------|
-| 函数名含 `and`/`or` | 是否拆分为单一职责函数 | ⚠️ 多职责函数 |
-| 3个以上参数 | 是否封装为结构体/DTO | ⚠️ 参数过多 |
-| `true`/`false` 作为参数 | 是否拆为两个语义明确的函数 | ⚠️ 布尔陷阱 |
-| 3层以上嵌套 | 是否可用 guard clause 扁平化 | ⚠️ 箭头代码 |
-| 裸数字 `== 3` / `>= 200` | 是否提取为命名常量/枚举 | ⚠️ 魔法值 |
-| 相似代码块出现3次+ | 是否提取为公共函数 | ⚠️ 重复代码 |
+> **Core Focus**: Eliminate copy-paste style duplicate code, extract general logic and patterns, reduce maintenance cost (one modification affects multiple places).
+
+### Search Patterns
+
+Duplicate error handling: `if err != nil` (Go), `catch (` (Java), `except ` (Python) appearing frequently in the same file
+Duplicate validation logic: required, @NotNull, @NotBlank, validate, etc. keywords
+Duplicate CRUD templates: Create/Update/Delete function signatures are highly similar
+Duplicate utility functions: Is/Has/Check/Parse/Format prefixed functions with same implementation in multiple places
+Duplicate config constants: const, static final, MAX_, MIN_, DEFAULT_ defined in multiple places
+Applicable files: *.go, *.java, *.py, *.rs, *.ts
+
+### Checklist
+
+#### Code Block Duplication
+- [ ] Are there copy-pasted code blocks (3+ lines identical or highly similar)
+- [ ] Do multiple functions have the same error handling pattern (should extract middleware or common wrapper)
+- [ ] Do multiple interfaces have the same parameter validation logic (should extract common validation function)
+
+#### Business Logic Duplication
+- [ ] Is the same business rule implemented in multiple places (e.g., order status judgment, permission check)
+- [ ] Do similar branch conditions appear in multiple functions (should unify as strategy/state machine)
+- [ ] Is there massive duplicate field mapping in data transformation logic (DTO ↔ Model)
+
+#### Template Code Redundancy
+- [ ] Are CRUD operations written with the same template code for every entity (consider generic base class/code generation)
+- [ ] Does Repository/DAO layer have many similar CRUD methods
+- [ ] Can generics/template method pattern reduce duplication
+
+#### Config & Definition Duplication
+- [ ] Are the same constants/configs defined in multiple files
+- [ ] Are the same error codes/status codes scattered in multiple places
+- [ ] Can the same struct/class definitions be merged
+
+### Deep Dive Method
+
+1. **Locate duplicates**: Group by file and count, high-frequency patterns are duplication signals
+
+2. **Analyze reuse value** (not all duplication needs elimination):
+   - Two identical places with high business relevance → Must extract
+   - Two similar places but different contexts → Merge and abstract first
+   - Two identical places but likely to evolve independently → Can temporarily keep
+
+3. **Give refactoring suggestions**:
+   - Duplicate code blocks → Extract as common function, parameterize differences
+   - Duplicate error handling → Extract middleware or `WrapHandler` wrapper
+   - Duplicate validation → Extract common validation function or validation tags
+   - Duplicate business logic → Unify to Service layer or domain model
+   - Duplicate CRUD → Use generic base class (Go: generics + interface; Java: generic Repository; Python: abstract base class)
+   - Duplicate constants → Centralize in constants package/class
+
+### Scenario Simulation
+
+For each duplicate code group, ask:
+
+- **What happens if you modify one side but forget the other?** This is the biggest risk of duplicate code. E.g., payment validation logic exists in two Services, later added coupon validation but only changed one place
+- **Are there subtle differences in the two "identical" pieces?** Code that looks the same may have subtle differences in boundary condition handling, error code return. Determine if differences are intentional (preserve when merging) or accidental (which version to use when merging?)
+- **Does duplicate business rules indicate a missing domain model?** If "order status flow" logic is scattered in 5 places, it may not be a code reuse problem but a missing `OrderStateMachine` domain object
+
+> **Deep dive signal**: The most dangerous thing about duplicate code is not maintenance cost but **consistency risk**. When one copy of duplicate business logic is modified but the other isn't, a hidden bug is created. Combine with #16 Idempotency Design to check if duplicate write operation logic is consistent, and with #28 Pitfall Self-Check to verify if duplicate boundary condition handling is consistent.
 
 ---
 
-## 跨维度关联提示
+## Common Missing Items Reference
 
-审查完代码基础维度后，检查以下关联风险：
+| If You See | Must Check For | If Missing, Flag |
+|------------|----------------|------------------|
+| Function name contains `and`/`or` | Whether it can be split into single-responsibility functions | ⚠️ Multi-responsibility function |
+| 3+ parameters | Whether encapsulated as struct/DTO | ⚠️ Too many parameters |
+| `true`/`false` as parameter | Whether split into two semantically clear functions | ⚠️ Boolean trap |
+| 3+ levels nesting | Whether guard clause flattening is possible | ⚠️ Arrow code |
+| Bare numbers `== 3` / `>= 200` | Whether extracted as named constants/enums | ⚠️ Magic values |
+| Similar code blocks appearing 3+ times | Whether extracted as common function | ⚠️ Duplicate code |
 
-| 关联信号 | 指向的维度 | 要追问的问题 |
-|----------|-----------|-------------|
-| 魔法值用于状态判断 | #8 并发安全、#16 幂等 | 状态流转是否原子？状态值变更会不会导致逻辑分支覆盖不全？ |
-| 函数职责混合了业务逻辑和外部调用 | #9 事务边界、#17 限流熔断 | 拆分后，外部调用是否在事务外？是否有超时和熔断？ |
-| 重复的业务规则散落多处 | #25 测试、#16 幂等 | 修改时能保证所有副本一致吗？测试覆盖了所有副本吗？ |
-| 深层嵌套包含错误处理 | #12 日志、#19 资源释放 | 内层分支的错误是否被正确处理和记录？资源是否在所有分支都释放了？ |
-| bool 参数控制不同业务分支 | #16 幂等 | 两个分支的幂等策略是否一致？调用方传错参数会怎样？ |
-| 硬编码的超时/重试配置 | #18 重试策略 | 超时值是否可按环境调整？重试次数是否合理？ |
+---
+
+## Cross-Dimension Association Hints
+
+After reviewing code fundamentals dimensions, check the following association risks:
+
+| Association Signal | Points To Dimension | Question to Ask |
+|-------------------|---------------------|-----------------|
+| Magic values used for status judgment | #8 Concurrency Safety, #16 Idempotency | Is state transition atomic? Will status value changes cause incomplete logic branch coverage? |
+| Function responsibility mixes business logic and external calls | #9 Transaction Boundary, #17 Rate Limiting/Circuit Breaker | After splitting, is external call outside transaction? Are there timeout and circuit breaker? |
+| Duplicate business rules scattered in multiple places | #25 Testing, #16 Idempotency | Can all copies be kept consistent when modifying? Are all copies covered by tests? |
+| Deep nesting contains error handling | #12 Logging, #19 Resource Release | Are inner branch errors correctly handled and logged? Are resources released in all branches? |
+| Bool parameter controls different business branches | #16 Idempotency | Are idempotency strategies consistent for both branches? What if caller passes wrong parameter? |
+| Hard-coded timeout/retry config | #18 Retry Strategy | Can timeout values be adjusted per environment? Are retry counts reasonable? |

@@ -1,76 +1,76 @@
-# 五、数据与运维
+# V. Data & Operations
 
-## 目录
-- [22. 缓存一致性](#22-缓存一致性)
-- [23. 监控与优雅上下线](#23-监控与优雅上下线)
-- [24. 链路追踪](#24-链路追踪)
+## Table of Contents
+- [22. Cache Consistency](#22-cache-consistency)
+- [23. Monitoring & Graceful Shutdown](#23-monitoring--graceful-shutdown)
+- [24. Distributed Tracing](#24-distributed-tracing)
 
 ---
 
-## 22. 缓存一致性
+## 22. Cache Consistency
 
-### 搜索关键词
+### Search Keywords
 
 ```
-缓存操作:
+Cache operations:
   Go: cache., Cache., redis.Get, redis.Set, redis.Del, ristretto, bigcache, freecache
   Java: @Cacheable, @CacheEvict, @CachePut, CacheManager, RedisTemplate, Caffeine, Ehcache
   Python: cache, @lru_cache, @cached, redis.get, redis.set, redis.delete
   TypeScript: cache., .get(, .set(, .del(, redis., ioredis
 
-写操作（缓存更新时机）:
+Write operations (cache update timing):
   Go: func.*Update, func.*Save, func.*Delete
-  Java/Python/TS: update, save, delete 相关方法
+  Java/Python/TS: update, save, delete related methods
 ```
 
-### 检查清单
-- [ ] 缓存更新策略是否明确（Cache Aside / Write Through / Write Behind）
-- [ ] 缓存是否有 TTL（过期时间）
-- [ ] 缓存失效时是否有防击穿保护（singleflight / 互斥锁）
-- [ ] 缓存雪崩风险：大量 key 是否同时过期
-- [ ] 缓存穿透风险：不存在的 key 是否缓存空值
-- [ ] 写操作时缓存更新顺序是否正确（先更新DB再删缓存）
+### Checklist
+- [ ] Is cache update strategy clear (Cache Aside / Write Through / Write Behind)
+- [ ] Does cache have TTL (expiration time)
+- [ ] Does cache invalidation have anti-breakdown protection (singleflight / mutex)
+- [ ] Cache avalanche risk: do large numbers of keys expire simultaneously
+- [ ] Cache penetration risk: are non-existent keys cached as empty values
+- [ ] Is cache update order correct on write operations (update DB first then delete cache)
 
-### 深挖方法
-1. 画出缓存读写路径
-2. **对每条路径推演异常场景**：
-   - 缓存刚好在查询和写入之间过期，会怎样？
-   - DB 更新成功但删缓存失败，会怎样？
-   - 并发读写同一个 key，各种时序下的结果是什么？
-3. 检查是否存在不一致的时间窗口
-4. 给出具体的缓存策略代码示例
+### Deep Dive Method
+1. Draw cache read/write paths
+2. **For each path simulate exception scenarios**:
+   - Cache expires between query and write, what happens?
+   - DB update succeeds but cache deletion fails, what happens?
+   - Concurrent read/write on same key, what are results under various timings?
+3. Check for inconsistent time windows
+4. Give specific cache strategy code examples
 
-### 场景推演
+### Scenario Simulation
 
-**并发更新**：A、B 同时更新同一条数据，都先更新 DB 再删缓存。时序：A更新DB→B更新DB→B删缓存→A删缓存。A删缓存后下一个读请求加载B的新值，最终一致。但在A删缓存之前有短暂不一致窗口。
+**Concurrent update**: A and B simultaneously update same data, both update DB first then delete cache. Timing: A updates DB → B updates DB → B deletes cache → A deletes cache. After A deletes cache, next read request loads B's new value, eventually consistent. But there's a brief inconsistency window before A deletes cache.
 
-**缓存击穿**：热点 key 过期，1000个请求同时 miss 缓存→1000个请求同时查 DB。DB 瞬间扛不住。有没有 singleflight 或互斥锁？
+**Cache breakdown**: Hot key expires, 1000 requests simultaneously miss cache → 1000 requests simultaneously query DB. DB can't handle it instantly. Is there singleflight or mutex?
 
-**缓存雪崩**：10000个 key 同一 TTL 同时过期，10000个请求同时打 DB。连接池 500 → 耗尽→雪崩。解决方案：TTL 加随机偏移 `baseTTL + random(0, 300s)`，或多级缓存。
+**Cache avalanche**: 10000 keys with same TTL expire simultaneously, 10000 requests simultaneously hit DB. Connection pool 500 → exhausted → avalanche. Solution: TTL with random offset `baseTTL + random(0, 300s)`, or multi-level cache.
 
-**缓存穿透**：大量不存在的 ID 查询，缓存 miss→全部打 DB→崩溃。解决方案：布隆过滤器、缓存空值（短 TTL）、入口 ID 合法性校验。
+**Cache penetration**: Large number of non-existent ID queries, cache miss → all hit DB → crash. Solutions: Bloom filter, cache empty values (short TTL), entry ID legitimacy validation.
 
-**删缓存失败**：DB 更新成功但删缓存失败→读到旧数据。多久恢复？TTL 1小时→1小时不一致。有没有重试删缓存、订阅 binlog 异步删、兜底 TTL？
+**Cache deletion failure**: DB update succeeds but cache deletion fails → read stale data. How long until recovery? TTL 1 hour → 1 hour inconsistency. Is there retry deletion, subscribe to binlog for async deletion, or fallback TTL?
 
-> **深挖信号**：批量设置相同 TTL → 缓存雪崩（→ #23 监控）。恶意查询不存在的 ID → 是输入校验还是缓存策略问题？（→ #20 输入校验）。缓存命中率暴跌有没有告警？（→ #23 监控）
+> **Deep dive signal**: Batch setting same TTL → cache avalanche (→ #23 Monitoring). Malicious query for non-existent IDs → is it input validation or cache strategy issue? (→ #20 Input Validation). Is there alert for sudden cache hit rate drop? (→ #23 Monitoring)
 
 ---
 
-## 23. 监控与优雅上下线
+## 23. Monitoring & Graceful Shutdown
 
-### 搜索关键词
+### Search Keywords
 
 ```
-指标监控:
+Metrics monitoring:
   Go: prometheus, promhttp, Counter, Gauge, Histogram, Summary
   Java: MeterRegistry, @Timed, @Counted, micrometer
   Python: prometheus_client, Counter, Gauge, Histogram, Summary
   Rust: prometheus, metrics
   TypeScript: prom-client, prometheus
 
-健康检查: health, Health, healthz, readyz, livez, /health, readiness, liveness
+Health checks: health, Health, healthz, readyz, livez, /health, readiness, liveness
 
-优雅停机:
+Graceful shutdown:
   Go: signal.Notify, os.Signal, SIGTERM, SIGINT, syscall.SIGTERM, Shutdown
   Java: @PreDestroy, DisposableBean, ShutdownHook, GracefulShutdown
   Python: signal.signal, SIGTERM, shutdown, lifespan
@@ -78,98 +78,98 @@
   TypeScript: process.on.*SIGTERM, process.on.*SIGINT, graceful, shutdown
 ```
 
-### 检查清单
+### Checklist
 
-#### 指标监控
-- [ ] 是否有 QPS/延迟/错误率的基础指标
-- [ ] 关键业务指标是否监控
-- [ ] 是否有资源使用率监控（CPU、内存、连接池）
-- [ ] 告警阈值是否合理
+#### Metrics Monitoring
+- [ ] Are there basic metrics for QPS/latency/error rate
+- [ ] Are critical business metrics monitored
+- [ ] Is there resource usage monitoring (CPU, memory, connection pool)
+- [ ] Are alert thresholds reasonable
 
-#### 健康检查
-- [ ] 是否有健康检查端点（/healthz、/readyz、/livez）
-- [ ] 就绪探针是否检查了所有依赖（数据库、Redis、MQ）
-- [ ] 启动时是否预热后再接流量
+#### Health Checks
+- [ ] Are there health check endpoints (/healthz, /readyz, /livez)
+- [ ] Does readiness probe check all dependencies (database, Redis, MQ)
+- [ ] Is there warmup before accepting traffic on startup
 
-#### 优雅停机
-- [ ] 服务是否有 SIGTERM 信号处理
-- [ ] 关闭时是否等待进行中的请求完成
-- [ ] 是否有关闭超时（强制退出时间）
+#### Graceful Shutdown
+- [ ] Does service have SIGTERM signal handling
+- [ ] Does shutdown wait for in-flight requests to complete
+- [ ] Is there shutdown timeout (forced exit time)
 
-### 深挖方法
-1. 列出所有已定义的 metrics，对照业务流程标记缺失项
-2. 检查健康检查端点是否覆盖了所有关键依赖
-3. **模拟 kill -SIGTERM**：进行中的请求怎样？事务回滚吗？消息丢吗？
-4. 给出缺失的 metrics 定义和 graceful shutdown 代码示例
+### Deep Dive Method
+1. List all defined metrics, mark missing items against business processes
+2. Check if health check endpoints cover all critical dependencies
+3. **Simulate kill -SIGTERM**: What about in-flight requests? Does transaction rollback? Are messages lost?
+4. Give missing metrics definitions and graceful shutdown code examples
 
-### 场景推演
+### Scenario Simulation
 
-**无监控**：P99 延迟从 200ms 涨到 2 秒，无告警，用户投诉后才发现。如果有 QPS/延迟/错误率指标，5分钟就能发现并告警。支付接口 P99 从 200ms 涨到 5s 呢？
+**No monitoring**: P99 latency rises from 200ms to 2 seconds, no alert, only discovered after user complaints. If there are QPS/latency/error rate metrics, can discover and alert in 5 minutes. What if payment interface P99 rises from 200ms to 5s?
 
-**滚动更新**：K8s 发版，旧 Pod 收到 SIGTERM 但还有 50-100 个请求在处理。直接退出→连接重置→用户看到"操作失败"甚至"数据丢失"（写请求）。正确做法：停止接收新请求→等待进行中请求完成（30s超时）→强制退出。
+**Rolling update**: K8s deploys, old Pod receives SIGTERM but still has 50-100 requests in progress. Direct exit → connection reset → user sees "operation failed" or even "data loss" (write requests). Correct approach: stop accepting new requests → wait for in-flight requests to complete (30s timeout) → force exit.
 
-**健康检查假阳性**：健康检查只返回 200 但不检查依赖。数据库挂了但健康检查通过→K8s 不摘除 Pod→所有请求失败。正确：就绪探针检查 DB/Redis/MQ 连通性，任一不可用返回 503。
+**Health check false positive**: Health check only returns 200 but doesn't check dependencies. Database is down but health check passes → K8s doesn't remove Pod → all requests fail. Correct: readiness probe checks DB/Redis/MQ connectivity, return 503 if any is unavailable.
 
-> **深挖信号**：停机时正在处理的消息会丢失吗？重启后重新消费能幂等吗？（→ #16 幂等）。关键接口有延迟分位图吗？缓存命中率有监控吗？
+> **Deep dive signal**: Will messages being processed during shutdown be lost? Can re-consumption after restart be idempotent? (→ #16 Idempotency). Does critical interface have latency histogram? Is cache hit rate monitored?
 
 ---
 
-## 24. 链路追踪
+## 24. Distributed Tracing
 
-### 搜索关键词
+### Search Keywords
 
 ```
-Tracing 框架:
+Tracing frameworks:
   Go: otel, opentelemetry
   Java: opentelemetry, brave, sleuth, TraceId, SpanId, @NewSpan
   Python: opentelemetry, jaeger, zipkin, tracer
   Rust: opentelemetry, tracing::
   TypeScript: opentelemetry
 
-Context 传递:
+Context propagation:
   Go: context.Context
   Java: RequestContextHolder, MDC, ThreadLocal
   Python: contextvars, ContextVar
 
-traceID 变量: traceID, TraceID, trace_id, span_id, SpanId, requestID, RequestID, correlationID
+traceID variables: traceID, TraceID, trace_id, span_id, SpanId, requestID, RequestID, correlationID
 ```
 
-### 检查清单
-- [ ] 是否集成了 tracing 框架（OpenTelemetry / Jaeger 等）
-- [ ] 是否有 traceID 生成和传递
-- [ ] context 是否在调用链中完整传递
-- [ ] 跨服务调用是否传递 traceID（HTTP header / gRPC metadata）
+### Checklist
+- [ ] Is tracing framework integrated (OpenTelemetry / Jaeger, etc.)
+- [ ] Is there traceID generation and propagation
+- [ ] Is context completely propagated through call chain
+- [ ] Does cross-service call propagate traceID (HTTP header / gRPC metadata)
 
-### 深挖方法
-1. 找到入口点，检查 traceID 生成
-2. **追踪 traceID 在调用链中的传递路径**：逐层检查 context 是否被传递
-3. 检查是否有断裂点（丢失 context 的调用）
-4. **重点检查**：goroutine / 异步调用 / 消息队列 是否传递了 context
-5. 给出 traceID 传递的完整链路修复方案
+### Deep Dive Method
+1. Find entry point, check traceID generation
+2. **Trace traceID propagation path through call chain**: check layer by layer if context is propagated
+3. Check for break points (calls that lose context)
+4. **Focus check**: Are goroutines / async calls / message queues propagating context
+5. Give complete traceID propagation chain fix plan
 
-### 场景推演
+### Scenario Simulation
 
-**断链**：请求从网关有 traceID，到 Service A 还有，但 A 调 B 时 traceID 丢了（没放 HTTP header/gRPC metadata）。出了问题只能靠时间窗口和业务参数猜。根因：跨服务调用没传播 trace context。
+**Broken chain**: Request has traceID from gateway, still has it at Service A, but loses traceID when A calls B (didn't put in HTTP header/gRPC metadata). When issues occur, can only guess by time window and business parameters. Root cause: cross-service call didn't propagate trace context.
 
-**异步断链**：主流程有 traceID，通过 MQ 触发的异步流程没有。异步出问题，怎么跟原始请求关联？只能靠业务 ID 搜日志。正确做法：traceID 作为消息 header 传递。
+**Async broken chain**: Main process has traceID, but async process triggered by MQ doesn't. When async issues occur, how to associate with original request? Can only search logs by business ID. Correct approach: propagate traceID as message header.
 
-**日志无 traceID**：线上报错，日志里 1000 条错误，不知道哪些是同一个请求的。并发场景下完全无法区分。修复：所有日志框架从 context 提取 traceID 写入每条日志（Go slog + traceID，Java MDC，Python contextvars）。
+**Logs without traceID**: Error occurs online, 1000 error logs, don't know which belong to same request. In concurrent scenarios completely indistinguishable. Fix: all logging frameworks extract traceID from context and write to every log (Go slog + traceID, Java MDC, Python contextvars).
 
-> **深挖信号**：跨服务调用的客户端是否正确注入了 trace header？（→ #12 日志中的 traceID 覆盖率）。消息队列生产者和消费者是否传递了 traceID？（→ #16 幂等、#12 日志）
+> **Deep dive signal**: Does cross-service call client correctly inject trace header? (→ #12 traceID coverage in logs). Do message queue producer and consumer propagate traceID? (→ #16 Idempotency, #12 Logging)
 
 ---
 
-## 常见缺失对照表
+## Common Missing Items Reference
 
-| 看到 | 必须检查是否有 | 缺失则标记 |
-|------|---------------|-----------|
-| `cache.Set(key, value)` | 写操作后是否 `cache.Del`（删缓存而非更新缓存） | ⚠️ 缓存不一致 |
-| `redis.Set(key, value)` | 是否有 TTL | ⚠️ 缓存永不过期 |
-| 缓存读取 miss | 是否有防击穿（singleflight/互斥锁） | ⚠️ 缓存击穿风险 |
-| 大量 key 同时设置 | TTL 是否加了随机偏移 | ⚠️ 缓存雪崩风险 |
-| 对外 API | 是否有 QPS/延迟/错误率监控 | ⚠️ 无监控盲区 |
-| 关键业务操作（支付/下单） | 是否有业务指标埋点 | ⚠️ 无业务监控 |
-| `ListenAndServe` / `app.run` | 是否有 SIGTERM 信号处理 | ❌ 无优雅停机 |
-| 健康检查端点 | 是否检查了所有依赖（DB/Redis/MQ） | ⚠️ 虚假健康 |
-| `context.Context` 传递 | traceID 是否在 goroutine/异步调用中传递 | ⚠️ 链路断裂 |
-| 跨服务调用（HTTP/gRPC） | 是否传递 traceID（header/metadata） | ⚠️ 链路断裂 |
+| If You See | Must Check For | If Missing, Flag |
+|------------|----------------|------------------|
+| `cache.Set(key, value)` | After write operation, is `cache.Del` done (delete cache rather than update cache) | ⚠️ Cache inconsistency |
+| `redis.Set(key, value)` | Is there TTL | ⚠️ Cache never expires |
+| Cache read miss | Is there anti-breakdown (singleflight/mutex) | ⚠️ Cache breakdown risk |
+| Large number of keys set simultaneously | Is TTL with random offset | ⚠️ Cache avalanche risk |
+| External API | Is there QPS/latency/error rate monitoring | ⚠️ Monitoring blind spot |
+| Critical business operation (payment/order) | Is there business metrics instrumentation | ⚠️ No business monitoring |
+| `ListenAndServe` / `app.run` | Is there SIGTERM signal handling | ❌ No graceful shutdown |
+| Health check endpoint | Does it check all dependencies (DB/Redis/MQ) | ⚠️ False health |
+| `context.Context` propagation | Is traceID propagated in goroutine/async calls | ⚠️ Chain break |
+| Cross-service call (HTTP/gRPC) | Is traceID propagated (header/metadata) | ⚠️ Chain break |

@@ -1,112 +1,112 @@
-# 三、架构与设计
+# III. Architecture & Design
 
-## 目录
-- [13. 单一职责与分层](#13-单一职责与分层)
-- [14. 面向接口编程](#14-面向接口编程)
-- [15. 配置与代码分离](#15-配置与代码分离)
+## Table of Contents
+- [13. Single Responsibility & Layering](#13-single-responsibility--layering)
+- [14. Interface-Oriented Programming](#14-interface-oriented-programming)
+- [15. Configuration & Code Separation](#15-configuration--code-separation)
 
 ---
 
-## 13. 单一职责与分层
+## 13. Single Responsibility & Layering
 
-### 搜索模式
+### Search Patterns
 
 ```
-# Controller/Handler 直接操作数据库（跨层调用信号）
-Go:       func Controller / func Handler 中出现 DB, db, sql, Query, Exec, .Find, .Where
-Java:     @Controller / @RestController / @GetMapping 中出现 JdbcTemplate, Repository, mapper., session.
-Python:   @app.route / @router. / def view 中出现 Model., objects., session., cursor., db.
-TypeScript: @Controller / @Get / @Post 中出现 prisma., repository., .query, .raw
+# Controller/Handler directly operating database (cross-layer call signal)
+Go:       func Controller / func Handler containing DB, db, sql, Query, Exec, .Find, .Where
+Java:     @Controller / @RestController / @GetMapping containing JdbcTemplate, Repository, mapper., session.
+Python:   @app.route / @router. / def view containing Model., objects., session., cursor., db.
+TypeScript: @Controller / @Get / @Post containing prisma., repository., .query, .raw
 
-# "上帝函数"（超过100行的函数/方法）
+# "God function" (function/method over 100 lines)
 Go:       awk '/^func /{name=$0; start=NR} /^}$/{if(NR-start>100) print NR, name}' *.go
 Java:     awk '/public.*{/{name=$0; start=NR} /^    }$/{if(NR-start>100) print NR, name}' *.java
 Python:   awk '/^def /{name=$0; start=NR} /^$/{if(NR-start>100) print NR, name}' *.py
 ```
 
-### 检查清单
-- [ ] 分层是否明确：Handler/Controller → Service → Repository/DAO
-- [ ] Controller 是否只做参数校验和转发，不含业务逻辑
-- [ ] Service 层是否只含业务逻辑，不含 SQL/HTTP 细节
-- [ ] Repository 层是否只含数据访问，不含业务判断
-- [ ] 依赖方向是否正确（上层依赖下层，不反向）
-- [ ] 是否存在跨层直接调用
+### Checklist
+- [ ] Are layers clear: Handler/Controller → Service → Repository/DAO
+- [ ] Does Controller only do parameter validation and forwarding, no business logic
+- [ ] Does Service layer only contain business logic, no SQL/HTTP details
+- [ ] Does Repository layer only contain data access, no business judgment
+- [ ] Is dependency direction correct (upper layer depends on lower layer, no reverse)
+- [ ] Is there cross-layer direct calling
 
-### 深挖方法
-1. 画出模块依赖图：谁调用了谁
-2. 对超过100行的函数，分析其职责是否可拆分
-3. 找到跨层调用的具体位置
-4. 给出重构后的分层代码结构
+### Deep Dive Method
+1. Draw module dependency diagram: who calls whom
+2. For functions over 100 lines, analyze if responsibilities can be split
+3. Find specific locations of cross-layer calls
+4. Give refactored layered code structure
 
-### 场景推演
+### Scenario Simulation
 
-**跨层调用推演**：Controller 直接操作数据库的话，如果将来要换数据库实现，要改几个地方？如果要在 Service 调用前加权限校验，要在几个地方加？如果 Service 层的某个函数要被 HTTP 和 gRPC 两个入口复用，它能直接处理 HTTP 请求对象吗？
+**Cross-layer call simulation**: If Controller directly operates database, how many places need changing if you switch database implementations later? If you need to add permission check before Service call, how many places to add? If a Service function needs to be reused by both HTTP and gRPC entry points, can it directly handle HTTP request objects?
 
-**上帝函数推演**：这个100行的函数，如果出了 bug，你能快速定位是哪一段出的问题吗？测试时能单独测其中一段吗？
+**God function simulation**: This 100-line function, if it has a bug, can you quickly locate which segment caused it? Can you test one segment independently?
 
-**依赖方向推演**：有没有 Repository 层反过来依赖 Service 层的情况？循环依赖会导致什么问题？
+**Dependency direction simulation**: Is there Repository layer depending on Service layer? What problems can circular dependency cause?
 
-> **深挖信号**：如果跨层调用或上帝函数确实存在，要求开发者画出当前调用链路图，标注每层的边界违规点，并给出拆分方案。
+> **Deep dive signal**: If cross-layer calls or god functions do exist, require the developer to draw the current call chain diagram, annotate each layer's boundary violation points, and provide a splitting plan.
 
 ---
 
-## 14. 面向接口编程
+## 14. Interface-Oriented Programming
 
-### 搜索模式
+### Search Patterns
 
 ```
-# 接口定义
+# Interface definitions
 Go:         type <Name> interface
 Java:       interface <Name>
 Python:     Protocol, ABC, @abstractmethod
 Rust:       trait <Name>
 TypeScript: interface <Name>
 
-# 具体类型直接注入（依赖具体实现信号）
-Go:         struct 中嵌入 *mysql, *redis, *postgres, *Impl
-Java:       @Autowired / @Inject / @Resource 后接 Impl, MySQL, Redis, Postgres
+# Concrete type direct injection (dependency on concrete implementation signal)
+Go:         struct embedding *mysql, *redis, *postgres, *Impl
+Java:       @Autowired / @Inject / @Resource followed by Impl, MySQL, Redis, Postgres
 Python:     from ... import Impl / from ... import mysql / from ... import redis
 TypeScript: new Impl / new Repository / new Service
 ```
 
-### 检查清单
-- [ ] 核心业务逻辑是否依赖接口/抽象而非具体实现
-- [ ] 存储层是否抽象为接口（可替换数据库实现）
-- [ ] 外部服务调用是否通过接口（便于 mock 测试）
-- [ ] Go: 接口是否在使用方定义（消费者定义接口）
-- [ ] Java: 是否面向 interface 编程而非 Impl
-- [ ] Python: 是否使用 Protocol/ABC 定义抽象
-- [ ] Rust: 是否使用 trait 定义行为
-- [ ] 接口粒度是否合理（小接口优于大接口）
+### Checklist
+- [ ] Does core business logic depend on interfaces/abstractions rather than concrete implementations
+- [ ] Is storage layer abstracted as interface (replaceable database implementation)
+- [ ] Are external service calls through interfaces (easy to mock for testing)
+- [ ] Go: Are interfaces defined by consumers (consumer defines interface)
+- [ ] Java: Is programming oriented towards interface rather than Impl
+- [ ] Python: Are Protocol/ABC used to define abstractions
+- [ ] Rust: Are traits used to define behavior
+- [ ] Is interface granularity reasonable (small interfaces优于大接口)
 
-### 深挖方法
-1. 列出所有 struct/class 的字段/依赖类型
-2. 标记哪些是具体实现、哪些是接口
-3. 分析具体实现字段是否应改为接口
-4. 给出接口定义和依赖注入示例
+### Deep Dive Method
+1. List all struct/class fields/dependency types
+2. Mark which are concrete implementations and which are interfaces
+3. Analyze if concrete implementation fields should be changed to interfaces
+4. Give interface definition and dependency injection examples
 
-### 场景推演
+### Scenario Simulation
 
-**可替换性推演**：如果把 MySQL 换成 PostgreSQL，要改几个文件？如果要给 OrderService 写单测，能 mock 掉数据库依赖吗？业务层直接 `new MySQLClient()` 时，两个服务共用同一套业务逻辑但用不同的存储引擎怎么办？
+**Replaceability simulation**: If switching MySQL to PostgreSQL, how many files need changing? If writing unit tests for OrderService, can database dependency be mocked? When business layer directly does `new MySQLClient()`, two services share the same business logic but use different storage engines — what then?
 
-**接口粒度推演**：这个接口有几个方法？如果一个调用方只用到其中一个方法，却被强制依赖了所有方法，这合理吗？接口是否在持续添加方法？是否应该拆分为更小的接口？
+**Interface granularity simulation**: How many methods does this interface have? If a caller only uses one method but is forced to depend on all methods, is that reasonable? Is the interface continuously adding methods? Should it be split into smaller interfaces?
 
-> **深挖信号**：如果核心业务逻辑直接依赖具体实现，要求开发者指出替换实现需改动的文件数，并给出接口抽象方案和 mock 测试示例。
+> **Deep dive signal**: If core business logic directly depends on concrete implementations, require the developer to indicate how many files need changing to replace the implementation, and provide interface abstraction plan and mock test examples.
 
 ---
 
-## 15. 配置与代码分离
+## 15. Configuration & Code Separation
 
-### 搜索模式
+### Search Patterns
 
 ```
-# 硬编码的环境配置（端口、地址）— 此处聚焦环境配置类硬编码，通用魔法值见 #5
-通用: 3306, 5432, 6379, 27017, localhost, 127.0.0.1, 0.0.0.0
+# Hard-coded environment configs (ports, addresses) — focus on environment config hard-coding here, general magic values see #5
+General: 3306, 5432, 6379, 27017, localhost, 127.0.0.1, 0.0.0.0
 
-# 硬编码的密钥/token（🔴 安全风险）
-通用: password = "...", secret = "...", token = "...", api_key = "...", apikey = "..."
+# Hard-coded keys/tokens (🔴 security risk)
+General: password = "...", secret = "...", token = "...", api_key = "...", apikey = "..."
 
-# 配置读取方式
+# Config reading methods
 Go:       os.Getenv, viper., config.
 Java:     @Value, @ConfigurationProperties, Environment, Config
 Python:   os.environ, os.getenv, config., settings., pydantic
@@ -114,49 +114,49 @@ Rust:     std::env::, dotenv, config::
 TypeScript: process.env, config., ConfigModule
 ```
 
-### 检查清单
-- [ ] 数据库地址/端口是否硬编码
-- [ ] 密钥/token 是否硬编码（安全风险！）
-- [ ] 超时时间、重试次数是否可配置
-- [ ] 不同环境（dev/staging/prod）配置是否分离
-- [ ] 配置是否有合理的默认值
+### Checklist
+- [ ] Are database addresses/ports hard-coded
+- [ ] Are keys/tokens hard-coded (security risk!)
+- [ ] Are timeout values, retry counts configurable
+- [ ] Are different environments (dev/staging/prod) configs separated
+- [ ] Do configs have reasonable defaults
 
-### 深挖方法
-1. 找到所有硬编码的配置值
-2. 检查是否有对应的配置文件或环境变量
-3. 对密钥/token：标记为 🔴 CRITICAL 安全问题
-4. 给出配置管理方案（Go: viper, Java: application.yml, Python: pydantic-settings, Rust: dotenv+config crate）
+### Deep Dive Method
+1. Find all hard-coded config values
+2. Check if there are corresponding config files or environment variables
+3. For keys/tokens: mark as 🔴 CRITICAL security issue
+4. Give config management solutions (Go: viper, Java: application.yml, Python: pydantic-settings, Rust: dotenv+config crate)
 
-### 场景推演
+### Scenario Simulation
 
-**多环境推演**：同一份代码，开发环境和生产环境的配置（数据库地址、密钥、超时时间）不同，怎么切换？硬编码意味着需要改代码重新编译。部署到生产环境时忘了改 `localhost:6379`，会怎样？
+**Multi-environment simulation**: Same code, different configs (DB address, key, timeout) between dev and production environments, how to switch? Hard-coding means code needs to be changed and recompiled. What if you forget to change `localhost:6379` when deploying to production?
 
-**密钥泄露推演**：密钥硬编码在代码里，代码进 Git 后，哪些人能看到？密钥一旦泄露，轮换流程是什么？如果代码开源了或泄露了，攻击者能做什么？
+**Key leak simulation**: Key hard-coded in code, after code enters Git, who can see it? Once key leaks, what's the rotation process? If code is open-sourced or leaked, what can attackers do?
 
-**配置变更推演**：修改一个超时时间需要重新部署吗？能否通过配置中心热更新？
+**Config change simulation**: Does modifying a timeout require redeployment? Can it hot-update through config center?
 
-> **深挖信号**：如果存在硬编码的密钥或环境配置，要求开发者说明多环境切换机制，并给出配置外置的改造方案和密钥轮换流程。
-
----
-
-## 常见缺失对照表
-
-| 看到 | 必须检查是否有 | 缺失则标记 |
-|------|---------------|-----------|
-| Controller/Handler | 是否只做参数校验+转发，不含 DB 操作 | ⚠️ 跨层调用 |
-| `new MySQLClient()` / `new RedisClient()` | 是否通过接口/依赖注入 | ⚠️ 依赖具体实现 |
-| 硬编码端口 `3306` / `localhost` | 是否从配置文件读取 | ⚠️ 配置硬编码 |
-| 硬编码密钥 `password = "..."` | 是否使用环境变量/密钥管理服务 | ❌ 密钥泄露 |
-| Service 层直接 `db.Query(...)` | 是否通过 Repository 抽象 | ⚠️ 分层不清 |
+> **Deep dive signal**: If there are hard-coded keys or environment configs, require the developer to explain multi-environment switching mechanism, and provide externalized config transformation plan and key rotation process.
 
 ---
 
-## 跨维度关联提示
+## Common Missing Items Reference
 
-| 关联信号 | 指向的维度 | 要追问的问题 |
-|----------|-----------|-------------|
-| Controller 直接操作数据库 | #8 并发安全、#9 事务边界 | 跨层调用的事务管理是否规范？并发控制是否遗漏？ |
-| 密钥硬编码 | #21 最小权限、#20 输入校验 | 用的是什么账号？有没有 root/sa？敏感数据是否也硬编码了？ |
-| 接口缺失 | #25 测试 | 核心逻辑依赖具体实现，单测怎么 mock？测试覆盖率会怎样？ |
-| 上帝函数 | #18 重试、#19 资源释放 | 函数过长，资源释放是否在每个分支都覆盖了？重试逻辑是否混在业务逻辑中？ |
-| 配置未分离 | #17 限流熔断、#18 重试 | 超时/重试/限流配置硬编码，不同环境是否合理？能否按需调整？ |
+| If You See | Must Check For | If Missing, Flag |
+|------------|----------------|------------------|
+| Controller/Handler | Whether it only does parameter validation + forwarding, no DB operations | ⚠️ Cross-layer call |
+| `new MySQLClient()` / `new RedisClient()` | Whether through interface/dependency injection | ⚠️ Dependency on concrete implementation |
+| Hard-coded port `3306` / `localhost` | Whether read from config file | ⚠️ Hard-coded config |
+| Hard-coded key `password = "..."` | Whether using environment variable/secret management service | ❌ Key leak |
+| Service layer directly `db.Query(...)` | Whether through Repository abstraction | ⚠️ Unclear layering |
+
+---
+
+## Cross-Dimension Association Hints
+
+| Association Signal | Points To Dimension | Question to Ask |
+|-------------------|---------------------|-----------------|
+| Controller directly operates database | #8 Concurrency Safety, #9 Transaction Boundary | Is cross-layer call transaction management standardized? Is concurrency control missed? |
+| Key hard-coded | #21 Least Privilege, #20 Input Validation | What account is used? Any root/sa? Is sensitive data also hard-coded? |
+| Missing interface | #25 Testing | Core logic depends on concrete implementation, how to mock for unit tests? What happens to test coverage? |
+| God function | #18 Retry, #19 Resource Release | Function is too long, is resource release covered in every branch? Is retry logic mixed with business logic? |
+| Config not separated | #17 Rate Limiting/Circuit Breaker, #18 Retry | Timeout/retry/rate limit configs hard-coded, are they reasonable across environments? Can they be adjusted as needed? |
