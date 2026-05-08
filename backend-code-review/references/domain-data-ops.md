@@ -9,20 +9,6 @@
 
 ## 22. Cache Consistency
 
-### Search Keywords
-
-```
-Cache operations:
-  Go: cache., Cache., redis.Get, redis.Set, redis.Del, ristretto, bigcache, freecache
-  Java: @Cacheable, @CacheEvict, @CachePut, CacheManager, RedisTemplate, Caffeine, Ehcache
-  Python: cache, @lru_cache, @cached, redis.get, redis.set, redis.delete
-  TypeScript: cache., .get(, .set(, .del(, redis., ioredis
-
-Write operations (cache update timing):
-  Go: func.*Update, func.*Save, func.*Delete
-  Java/Python/TS: update, save, delete related methods
-```
-
 ### Checklist
 - [ ] Is cache update strategy clear (Cache Aside / Write Through / Write Behind)
 - [ ] Does cache have TTL (expiration time)
@@ -57,26 +43,6 @@ Write operations (cache update timing):
 ---
 
 ## 23. Monitoring & Graceful Shutdown
-
-### Search Keywords
-
-```
-Metrics monitoring:
-  Go: prometheus, promhttp, Counter, Gauge, Histogram, Summary
-  Java: MeterRegistry, @Timed, @Counted, micrometer
-  Python: prometheus_client, Counter, Gauge, Histogram, Summary
-  Rust: prometheus, metrics
-  TypeScript: prom-client, prometheus
-
-Health checks: health, Health, healthz, readyz, livez, /health, readiness, liveness
-
-Graceful shutdown:
-  Go: signal.Notify, os.Signal, SIGTERM, SIGINT, syscall.SIGTERM, Shutdown
-  Java: @PreDestroy, DisposableBean, ShutdownHook, GracefulShutdown
-  Python: signal.signal, SIGTERM, shutdown, lifespan
-  Rust: tokio::signal, ctrl_c, tokio::select
-  TypeScript: process.on.*SIGTERM, process.on.*SIGINT, graceful, shutdown
-```
 
 ### Checklist
 
@@ -115,24 +81,6 @@ Graceful shutdown:
 ---
 
 ## 24. Distributed Tracing
-
-### Search Keywords
-
-```
-Tracing frameworks:
-  Go: otel, opentelemetry
-  Java: opentelemetry, brave, sleuth, TraceId, SpanId, @NewSpan
-  Python: opentelemetry, jaeger, zipkin, tracer
-  Rust: opentelemetry, tracing::
-  TypeScript: opentelemetry
-
-Context propagation:
-  Go: context.Context
-  Java: RequestContextHolder, MDC, ThreadLocal
-  Python: contextvars, ContextVar
-
-traceID variables: traceID, TraceID, trace_id, span_id, SpanId, requestID, RequestID, correlationID
-```
 
 ### Checklist
 - [ ] Is tracing framework integrated (OpenTelemetry / Jaeger, etc.)

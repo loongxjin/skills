@@ -106,7 +106,7 @@ After user selection, **only read the reference files for selected directions**.
 
 Use Grep/Glob/ReadFile tools to:
 
-1. **Identify project language and framework**, subsequent review only focuses on corresponding language search patterns
+1. **Identify project language and framework**
 2. **Find entry points**: Public methods in Controller/Handler, or MQ Consumer processing functions
 3. **Read down the call chain**: Entry → Service → Repository/External calls, read code layer by layer
 4. **Draw the call chain**: List critical paths in text, e.g.:
@@ -147,7 +147,7 @@ High-risk nodes: tx.Begin~tx.Commit (includes MQ.Publish), StockRepo.Deduct (con
 
 **Deep Dimensions** (Robustness & Performance #7-#12, Architecture & Design #13-#15, Fault Tolerance & Security #16-#21, Data & Operations #22-#24): Strictly follow these steps:
 
-1. **Scan**: Use search keywords in reference to Grep search code
+1. **Scan**: Use Grep to search code for relevant patterns
 2. **Locate**: Find specific code lines, ReadFile to view context
 3. **Analyze**: Check against references checklist item by item
 4. **Scenario Simulation** (this determines review depth): For each suspicious point, **use concrete scenario simulation** rather than static judgment

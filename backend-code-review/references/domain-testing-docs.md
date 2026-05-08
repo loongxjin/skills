@@ -11,15 +11,6 @@
 
 ## 25. Critical Path Automated Testing
 
-### Search Patterns
-
-```
-Test files: Go *_test.go | Java *Test.java *Tests.java *IT.java | Python test_*.py *_test.py | Rust *.rs | TypeScript *.test.ts *.spec.ts
-Test functions: Go func Test func Benchmark func Fuzz | Java @Test @ParameterizedTest @RepeatedTest | Python def test_ class Test @pytest | Rust #[test] #[tokio::test] | TypeScript describe( it( test(
-Mock: Go gomock testify mockery | Java Mockito @Mock @InjectMocks | Python unittest.mock @patch pytest-mock freezegun | TypeScript jest.fn jest.mock sinon vi.fn vi.mock
-Core business: Go func.*Pay func.*Charge func.*Deduct func.*Transfer func.*Calculate | Java public.*pay public.*charge public.*deduct public.*transfer public.*calculate | Python def.*pay def.*charge def.*deduct def.*transfer def.*calculate
-```
-
 ### Checklist
 - [ ] Is core business logic (payment, status flow, amount calculation) covered by unit tests
 - [ ] Are table-driven tests/parameterized tests used to cover boundary cases
@@ -69,13 +60,6 @@ This dimension is process review, not targeting specific code. Focus on checking
 ---
 
 ## 27. API Documentation & Code Sync
-
-### Search Patterns
-
-```
-Documentation annotations: Go @Router @Summary @Tags @Param @Success @Failure rpc message service(.proto) | Java @ApiOperation @Api @Schema @Operation @Tag @ApiResponse | Python swagger openapi @swagger serializers. | TypeScript @ApiOperation @ApiResponse @ApiTags swagger openapi trpc.
-Route definitions: Go router. r.GET r.POST r.PUT r.DELETE Group Handle | Java @GetMapping @PostMapping @PutMapping @DeleteMapping @RequestMapping | Python @app.route @router. path( | TypeScript @Get @Post @Put @Delete router.
-```
 
 ### Checklist
 - [ ] Does each API have documentation annotations
@@ -136,15 +120,6 @@ Actively think about the following questions for each function during review:
 ---
 
 ## 29. Backward Compatibility
-
-### Search Patterns
-
-```
-Schema changes: ALTER TABLE ADD COLUMN DROP COLUMN MODIFY COLUMN CREATE TABLE
-Serialization tags: Go json: xml: form: query: gorm: | Java @JsonProperty @XmlElement @Column | Python Field( serializer @dataclass pydantic | TypeScript @ApiProperty @IsOptional interface
-Config items: Config config .Env viper pydantic
-Enums/Constants: const iota enum Enum Enumeration
-```
 
 ### Checklist
 - [ ] Do new fields have default values (old data doesn't have this field)

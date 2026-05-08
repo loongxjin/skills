@@ -12,11 +12,6 @@
 
 ## 1. 命名规范
 
-### 搜索模式
-
-搜索关键词：tmp, temp, ret, data, info, result, obj, val, buf, num
-适用文件：*.go, *.java, *.py, *.rs, *.ts, *.tsx
-
 ### 检查清单
 - [ ] 变量名是否表达了业务含义（`orderCount` 而非 `cnt`）
 - [ ] 函数名是否是动词短语（`GetUserByID` / `getUserById` / `get_user_by_id`）
@@ -45,12 +40,6 @@
 
 ## 2. 函数职责单一
 
-### 搜索模式
-
-语言特定函数定义：Go `func`、Java `public/private/protected`、Python `def`、Rust `fn`、TypeScript `function`/`=>`/`async`
-多职责信号：函数名中包含 `and`/`or`（如 `CreateAndSend`、`parse_or_default`）
-适用文件：*.go, *.java, *.py, *.rs, *.ts, *.tsx
-
 ### 检查清单
 - [ ] 函数是否超过 50 行（超过需警惕）
 - [ ] 函数名是否暗示多个动作（`CreateAndSendEmail` / `create_and_send_email`）
@@ -77,12 +66,6 @@
 
 ## 3. 参数精简
 
-### 搜索模式
-
-多参数信号：函数签名中出现 4 个及以上参数（正则匹配 `..., ..., ..., ...`）
-bool 参数：`bool`（Go/Python）、`boolean`/`Boolean`（Java）出现在参数列表中
-适用文件：*.go, *.java, *.py, *.rs, *.ts
-
 ### 检查清单
 - [ ] 参数是否超过3个
 - [ ] 是否有 bool 参数控制 if-else 分支（应拆为两个函数）
@@ -105,12 +88,6 @@ bool 参数：`bool`（Go/Python）、`boolean`/`Boolean`（Java）出现在参�
 ---
 
 ## 4. 控制流扁平化
-
-### 搜索模式
-
-深层嵌套：3层及以上缩进（tab 或 8+ spaces）
-else 分支：`} else {`（Go/Java）、`else:`（Python）
-适用文件：*.go, *.java, *.py, *.rs, *.ts, *.tsx
 
 ### 检查清单
 - [ ] 是否存在超过2层嵌套的 if-else
@@ -183,12 +160,6 @@ if not data.is_valid():
 
 ## 5. 消除魔法值
 
-### 搜索模式
-
-硬编码数字：非 0/1/-1 的裸数字出现在条件或赋值中
-硬编码字符串：`"..."` 赋值但无 `final`/`static final`/枚举修饰
-适用文件：*.go, *.java, *.py, *.rs, *.ts
-
 ### 检查清单
 - [ ] 数字常量是否有命名（`maxRetryCount` 而非 `3`）
 - [ ] 状态/类型是否用枚举/常量组定义
@@ -217,15 +188,6 @@ if not data.is_valid():
 ## 6. 代码复用与去重
 
 > **核心关注点**：消除复制粘贴式的重复代码，提炼通用的逻辑和模式，降低维护成本（一处修改多处生效）。
-
-### 搜索模式
-
-重复错误处理：`if err != nil`（Go）、`catch (`（Java）、`except `（Python）在同一文件中高频出现
-重复校验逻辑：required, @NotNull, @NotBlank, validate 等关键词
-重复 CRUD 模板：Create/Update/Delete 函数签名高度相似
-重复工具函数：Is/Has/Check/Parse/Format 开头的函数在多处有相同实现
-重复配置常量：const, static final, MAX_, MIN_, DEFAULT_ 在多处定义
-适用文件：*.go, *.java, *.py, *.rs, *.ts
 
 ### 检查清单
 

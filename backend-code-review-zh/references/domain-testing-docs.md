@@ -11,15 +11,6 @@
 
 ## 25. 关键路径自动化测试
 
-### 搜索模式
-
-```
-测试文件: Go *_test.go | Java *Test.java *Tests.java *IT.java | Python test_*.py *_test.py | Rust *.rs | TypeScript *.test.ts *.spec.ts
-测试函数: Go func Test func Benchmark func Fuzz | Java @Test @ParameterizedTest @RepeatedTest | Python def test_ class Test @pytest | Rust #[test] #[tokio::test] | TypeScript describe( it( test(
-Mock: Go gomock testify mockery | Java Mockito @Mock @InjectMocks | Python unittest.mock @patch pytest-mock freezegun | TypeScript jest.fn jest.mock sinon vi.fn vi.mock
-核心业务: Go func.*Pay func.*Charge func.*Deduct func.*Transfer func.*Calculate | Java public.*pay public.*charge public.*deduct public.*transfer public.*calculate | Python def.*pay def.*charge def.*deduct def.*transfer def.*calculate
-```
-
 ### 检查清单
 - [ ] 核心业务逻辑（支付、状态流转、金额计算）是否有单测
 - [ ] 是否使用表驱动测试/参数化测试覆盖边界情况
@@ -69,13 +60,6 @@ Mock: Go gomock testify mockery | Java Mockito @Mock @InjectMocks | Python unitt
 ---
 
 ## 27. 接口文档与代码同步
-
-### 搜索模式
-
-```
-文档注解: Go @Router @Summary @Tags @Param @Success @Failure rpc message service(.proto) | Java @ApiOperation @Api @Schema @Operation @Tag @ApiResponse | Python swagger openapi @swagger serializers. | TypeScript @ApiOperation @ApiResponse @ApiTags swagger openapi trpc.
-路由定义: Go router. r.GET r.POST r.PUT r.DELETE Group Handle | Java @GetMapping @PostMapping @PutMapping @DeleteMapping @RequestMapping | Python @app.route @router. path( | TypeScript @Get @Post @Put @Delete router.
-```
 
 ### 检查清单
 - [ ] 每个 API 是否有文档注解
@@ -136,15 +120,6 @@ Mock: Go gomock testify mockery | Java Mockito @Mock @InjectMocks | Python unitt
 ---
 
 ## 29. 向后兼容性
-
-### 搜索模式
-
-```
-Schema 变更: ALTER TABLE ADD COLUMN DROP COLUMN MODIFY COLUMN CREATE TABLE
-序列化标签: Go json: xml: form: query: gorm: | Java @JsonProperty @XmlElement @Column | Python Field( serializer @dataclass pydantic | TypeScript @ApiProperty @IsOptional interface
-配置项: Config config .Env viper pydantic
-枚举/常量: const iota enum Enum Enumeration
-```
 
 ### 检查清单
 - [ ] 新增字段是否有默认值（旧数据不存在该字段）

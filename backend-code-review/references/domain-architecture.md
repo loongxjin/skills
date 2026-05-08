@@ -9,21 +9,6 @@
 
 ## 13. Single Responsibility & Layering
 
-### Search Patterns
-
-```
-# Controller/Handler directly operating database (cross-layer call signal)
-Go:       func Controller / func Handler containing DB, db, sql, Query, Exec, .Find, .Where
-Java:     @Controller / @RestController / @GetMapping containing JdbcTemplate, Repository, mapper., session.
-Python:   @app.route / @router. / def view containing Model., objects., session., cursor., db.
-TypeScript: @Controller / @Get / @Post containing prisma., repository., .query, .raw
-
-# "God function" (function/method over 100 lines)
-Go:       awk '/^func /{name=$0; start=NR} /^}$/{if(NR-start>100) print NR, name}' *.go
-Java:     awk '/public.*{/{name=$0; start=NR} /^    }$/{if(NR-start>100) print NR, name}' *.java
-Python:   awk '/^def /{name=$0; start=NR} /^$/{if(NR-start>100) print NR, name}' *.py
-```
-
 ### Checklist
 - [ ] Are layers clear: Handler/Controller → Service → Repository/DAO
 - [ ] Does Controller only do parameter validation and forwarding, no business logic
@@ -52,23 +37,6 @@ Python:   awk '/^def /{name=$0; start=NR} /^$/{if(NR-start>100) print NR, name}'
 
 ## 14. Interface-Oriented Programming
 
-### Search Patterns
-
-```
-# Interface definitions
-Go:         type <Name> interface
-Java:       interface <Name>
-Python:     Protocol, ABC, @abstractmethod
-Rust:       trait <Name>
-TypeScript: interface <Name>
-
-# Concrete type direct injection (dependency on concrete implementation signal)
-Go:         struct embedding *mysql, *redis, *postgres, *Impl
-Java:       @Autowired / @Inject / @Resource followed by Impl, MySQL, Redis, Postgres
-Python:     from ... import Impl / from ... import mysql / from ... import redis
-TypeScript: new Impl / new Repository / new Service
-```
-
 ### Checklist
 - [ ] Does core business logic depend on interfaces/abstractions rather than concrete implementations
 - [ ] Is storage layer abstracted as interface (replaceable database implementation)
@@ -96,23 +64,6 @@ TypeScript: new Impl / new Repository / new Service
 ---
 
 ## 15. Configuration & Code Separation
-
-### Search Patterns
-
-```
-# Hard-coded environment configs (ports, addresses) — focus on environment config hard-coding here, general magic values see #5
-General: 3306, 5432, 6379, 27017, localhost, 127.0.0.1, 0.0.0.0
-
-# Hard-coded keys/tokens (🔴 security risk)
-General: password = "...", secret = "...", token = "...", api_key = "...", apikey = "..."
-
-# Config reading methods
-Go:       os.Getenv, viper., config.
-Java:     @Value, @ConfigurationProperties, Environment, Config
-Python:   os.environ, os.getenv, config., settings., pydantic
-Rust:     std::env::, dotenv, config::
-TypeScript: process.env, config., ConfigModule
-```
 
 ### Checklist
 - [ ] Are database addresses/ports hard-coded

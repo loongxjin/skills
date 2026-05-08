@@ -9,21 +9,6 @@
 
 ## 13. 单一职责与分层
 
-### 搜索模式
-
-```
-# Controller/Handler 直接操作数据库（跨层调用信号）
-Go:       func Controller / func Handler 中出现 DB, db, sql, Query, Exec, .Find, .Where
-Java:     @Controller / @RestController / @GetMapping 中出现 JdbcTemplate, Repository, mapper., session.
-Python:   @app.route / @router. / def view 中出现 Model., objects., session., cursor., db.
-TypeScript: @Controller / @Get / @Post 中出现 prisma., repository., .query, .raw
-
-# "上帝函数"（超过100行的函数/方法）
-Go:       awk '/^func /{name=$0; start=NR} /^}$/{if(NR-start>100) print NR, name}' *.go
-Java:     awk '/public.*{/{name=$0; start=NR} /^    }$/{if(NR-start>100) print NR, name}' *.java
-Python:   awk '/^def /{name=$0; start=NR} /^$/{if(NR-start>100) print NR, name}' *.py
-```
-
 ### 检查清单
 - [ ] 分层是否明确：Handler/Controller → Service → Repository/DAO
 - [ ] Controller 是否只做参数校验和转发，不含业务逻辑
@@ -52,23 +37,6 @@ Python:   awk '/^def /{name=$0; start=NR} /^$/{if(NR-start>100) print NR, name}'
 
 ## 14. 面向接口编程
 
-### 搜索模式
-
-```
-# 接口定义
-Go:         type <Name> interface
-Java:       interface <Name>
-Python:     Protocol, ABC, @abstractmethod
-Rust:       trait <Name>
-TypeScript: interface <Name>
-
-# 具体类型直接注入（依赖具体实现信号）
-Go:         struct 中嵌入 *mysql, *redis, *postgres, *Impl
-Java:       @Autowired / @Inject / @Resource 后接 Impl, MySQL, Redis, Postgres
-Python:     from ... import Impl / from ... import mysql / from ... import redis
-TypeScript: new Impl / new Repository / new Service
-```
-
 ### 检查清单
 - [ ] 核心业务逻辑是否依赖接口/抽象而非具体实现
 - [ ] 存储层是否抽象为接口（可替换数据库实现）
@@ -96,23 +64,6 @@ TypeScript: new Impl / new Repository / new Service
 ---
 
 ## 15. 配置与代码分离
-
-### 搜索模式
-
-```
-# 硬编码的环境配置（端口、地址）— 此处聚焦环境配置类硬编码，通用魔法值见 #5
-通用: 3306, 5432, 6379, 27017, localhost, 127.0.0.1, 0.0.0.0
-
-# 硬编码的密钥/token（🔴 安全风险）
-通用: password = "...", secret = "...", token = "...", api_key = "...", apikey = "..."
-
-# 配置读取方式
-Go:       os.Getenv, viper., config.
-Java:     @Value, @ConfigurationProperties, Environment, Config
-Python:   os.environ, os.getenv, config., settings., pydantic
-Rust:     std::env::, dotenv, config::
-TypeScript: process.env, config., ConfigModule
-```
 
 ### 检查清单
 - [ ] 数据库地址/端口是否硬编码

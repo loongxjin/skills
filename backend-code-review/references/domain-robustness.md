@@ -12,29 +12,6 @@
 
 ## 7. Database Performance & Batch Operations
 
-### Search Keywords
-
-```
-ORM/Queries:
-  Go: .Find, .First, .Where, .Raw, .Exec, db.Query, db.Exec
-  Java: @Select, @Insert, @Update, @Delete, executeQuery, jdbcTemplate, mapper.
-  Python: session.query, .filter, .objects, .raw, cursor.execute, .all()
-  Rust: query, execute, fetch, sqlx::, diesel::
-  TypeScript: .findMany, .findUnique, .raw, .query, createQueryBuilder, knex(
-
-N+1 signal: find/query/select/where/fetch/get appearing inside for/forEach/map loops
-
-Missing LIMIT signal: Find/SELECT/query/.all() results without limit/Limit/page/size/offset
-
-Batch operations:
-  Go: INSERT INTO ... VALUES, CreateInBatches, Create + []
-  Java: saveAll, batchInsert, executeBatch, @BatchInsert
-  Python: bulk_create, bulk_update, execute_many, insert_many
-  TypeScript: createMany, updateMany, deleteMany
-
-Full table operations: DELETE FROM / UPDATE ... SET / TRUNCATE without WHERE clause
-```
-
 ### Checklist
 
 #### Query Performance
@@ -78,25 +55,6 @@ Full table operations: DELETE FROM / UPDATE ... SET / TRUNCATE without WHERE cla
 
 ## 8. Concurrency & Distributed Safety
 
-### Search Keywords
-
-```
-Locks:
-  Go: sync.Mutex, sync.RWMutex, Lock(), RLock(), Unlock(), RUnlock(), sync.Map
-  Java: synchronized, ReentrantLock, AtomicInteger, AtomicLong, ConcurrentHashMap, volatile
-  Python: threading.Lock, multiprocessing, asyncio, async def, await, concurrent.futures
-  Rust: Mutex::new, RwLock::new, Arc::new, mpsc::, spawn, tokio::spawn
-
-Goroutine/Threads:
-  Go: go func, go <func>()
-  Java: ThreadPool, ExecutorService, CompletableFuture, @Async
-  Rust: std::thread
-  TypeScript: Promise, async, await, Worker, cluster
-
-Shared state:
-  Go: var <name> + map/slice/[]
-```
-
 ### Checklist
 - [ ] Is shared mutable state protected by locks
 - [ ] Is lock granularity reasonable (only lock critical section)
@@ -127,22 +85,6 @@ Shared state:
 
 ## 9. Transaction Boundaries
 
-### Search Keywords
-
-```
-Transactions:
-  Go: Begin, Transaction, tx., Commit, Rollback, WithTransaction
-  Java: @Transactional, TransactionTemplate, PlatformTransactionManager
-  Python: transaction.atomic, @transaction.atomic, session.begin, commit, rollback
-  Rust: transaction, begin, commit, rollback
-  TypeScript: $transaction, .transaction, START TRANSACTION, BEGIN
-
-IO inside transactions (should not be):
-  Go: http.Get, http.Post, grpc., rpc., .Publish, .Send, .Call
-  Java: RestTemplate, WebClient, FeignClient, KafkaTemplate, RabbitTemplate
-  Python: requests., aiohttp., celery., broker.
-```
-
 ### Checklist
 - [ ] Are operations needing atomicity within transactions
 - [ ] Does transaction contain network calls (HTTP/RPC/MQ) — should not
@@ -171,16 +113,6 @@ IO inside transactions (should not be):
 ---
 
 ## 10. Data Growth Sensitivity
-
-### Search Keywords
-
-```
-Growable collections: append(, push(, .add(, insert(, map[], Map<, dict(, HashMap
-Numeric types: int32, int16, int, uint, Integer, Long, float, Float
-Memory sort/aggregate: sort., Sort, ORDER BY, GroupBy, GROUP BY, Count, count(
-Nested loop signal: for...range/for...in/for...each nested inside for...range/for...in/for...each
-Full export: export, Export, download, Download, csv, Excel, xlsx
-```
 
 ### Checklist
 
@@ -233,21 +165,6 @@ Full export: export, Export, download, Download, csv, Excel, xlsx
 
 ## 11. Long-Running Stability
 
-### Search Keywords
-
-```
-Scheduled tasks:
-  Go: time.Ticker, time.Sleep, cron, Schedule, ticker, interval
-  Java: @Scheduled, ScheduledExecutorService, Timer, cron
-  Python: schedule, cron, celery.beat, APScheduler, @periodic_task
-  Rust: tokio::time::interval, std::thread::sleep
-
-Connection pools:
-  Go: sql.Open, SetMaxOpenConns, SetMaxIdleConns, ConnMaxLifetime, redis.NewClient
-  Java: HikariCP, DataSource, ConnectionPool, ThreadPoolExecutor, maxPoolSize
-  Python: pool, create_engine, pool_size, max_overflow
-```
-
 ### Checklist
 - [ ] Can scheduled task execution time exceed interval (task pile-up)
 - [ ] Does cache have eviction strategy (LRU/TTL/max capacity) — see #22
@@ -274,21 +191,6 @@ Connection pools:
 ---
 
 ## 12. Observability (Logging)
-
-### Search Keywords
-
-```
-Logging frameworks:
-  Go: log., logger., slog., Infof, Errorf, Warnf, Debugf, printf, Println
-  Java: log., logger., Logger, log.info, log.error, log.warn, log.debug, SLF4J
-  Python: logging., logger., log., print(
-  Rust: info!, error!, warn!, debug!, tracing::, log::
-  TypeScript: console., logger., winston, pino, bunyan
-
-Errors without logs: if err / catch ( / except / Err( → return/throw/raise but no log/logger
-
-Critical business: pay, charge, deduct, refund, transfer, create.*order, update.*status, delete.*account
-```
 
 ### Checklist
 - [ ] Do error paths have logs

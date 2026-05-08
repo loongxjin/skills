@@ -12,29 +12,6 @@
 
 ## 7. 数据库性能与批量操作
 
-### 搜索关键词
-
-```
-ORM/查询:
-  Go: .Find, .First, .Where, .Raw, .Exec, db.Query, db.Exec
-  Java: @Select, @Insert, @Update, @Delete, executeQuery, jdbcTemplate, mapper.
-  Python: session.query, .filter, .objects, .raw, cursor.execute, .all()
-  Rust: query, execute, fetch, sqlx::, diesel::
-  TypeScript: .findMany, .findUnique, .raw, .query, createQueryBuilder, knex(
-
-N+1 信号: for/forEach/map 循环内出现 find/query/select/where/fetch/get
-
-缺 LIMIT 信号: Find/SELECT/query/.all() 结果中无 limit/Limit/page/size/offset
-
-批量操作:
-  Go: INSERT INTO ... VALUES, CreateInBatches, Create + []
-  Java: saveAll, batchInsert, executeBatch, @BatchInsert
-  Python: bulk_create, bulk_update, execute_many, insert_many
-  TypeScript: createMany, updateMany, deleteMany
-
-全表操作: DELETE FROM / UPDATE ... SET / TRUNCATE 无 WHERE 条件
-```
-
 ### 检查清单
 
 #### 查询性能
@@ -78,25 +55,6 @@ N+1 信号: for/forEach/map 循环内出现 find/query/select/where/fetch/get
 
 ## 8. 并发与分布式安全
 
-### 搜索关键词
-
-```
-锁:
-  Go: sync.Mutex, sync.RWMutex, Lock(), RLock(), Unlock(), RUnlock(), sync.Map
-  Java: synchronized, ReentrantLock, AtomicInteger, AtomicLong, ConcurrentHashMap, volatile
-  Python: threading.Lock, multiprocessing, asyncio, async def, await, concurrent.futures
-  Rust: Mutex::new, RwLock::new, Arc::new, mpsc::, spawn, tokio::spawn
-
-Goroutine/线程:
-  Go: go func, go <func>()
-  Java: ThreadPool, ExecutorService, CompletableFuture, @Async
-  Rust: std::thread
-  TypeScript: Promise, async, await, Worker, cluster
-
-共享状态:
-  Go: var <name> + map/slice/[]
-```
-
 ### 检查清单
 - [ ] 共享可变状态是否有锁保护
 - [ ] 锁粒度是否合理（只锁临界区）
@@ -127,22 +85,6 @@ Goroutine/线程:
 
 ## 9. 事务边界
 
-### 搜索关键词
-
-```
-事务:
-  Go: Begin, Transaction, tx., Commit, Rollback, WithTransaction
-  Java: @Transactional, TransactionTemplate, PlatformTransactionManager
-  Python: transaction.atomic, @transaction.atomic, session.begin, commit, rollback
-  Rust: transaction, begin, commit, rollback
-  TypeScript: $transaction, .transaction, START TRANSACTION, BEGIN
-
-事务内的 IO（不应在事务中）:
-  Go: http.Get, http.Post, grpc., rpc., .Publish, .Send, .Call
-  Java: RestTemplate, WebClient, FeignClient, KafkaTemplate, RabbitTemplate
-  Python: requests., aiohttp., celery., broker.
-```
-
 ### 检查清单
 - [ ] 需要原子性的操作是否在事务内
 - [ ] 事务中是否包含网络调用（HTTP/RPC/MQ）——不应有
@@ -171,16 +113,6 @@ Goroutine/线程:
 ---
 
 ## 10. 数据增长敏感性
-
-### 搜索关键词
-
-```
-可增长集合: append(, push(, .add(, insert(, map[], Map<, dict(, HashMap
-数值类型: int32, int16, int, uint, Integer, Long, float, Float
-内存排序/聚合: sort., Sort, ORDER BY, GroupBy, GROUP BY, Count, count(
-嵌套循环信号: for...range/for...in/for...each 内嵌套 for...range/for...in/for...each
-全量导出: export, Export, download, Download, csv, Excel, xlsx
-```
 
 ### 检查清单
 
@@ -233,21 +165,6 @@ Goroutine/线程:
 
 ## 11. 长时间运行稳定性
 
-### 搜索关键词
-
-```
-定时任务:
-  Go: time.Ticker, time.Sleep, cron, Schedule, ticker, interval
-  Java: @Scheduled, ScheduledExecutorService, Timer, cron
-  Python: schedule, cron, celery.beat, APScheduler, @periodic_task
-  Rust: tokio::time::interval, std::thread::sleep
-
-连接池:
-  Go: sql.Open, SetMaxOpenConns, SetMaxIdleConns, ConnMaxLifetime, redis.NewClient
-  Java: HikariCP, DataSource, ConnectionPool, ThreadPoolExecutor, maxPoolSize
-  Python: pool, create_engine, pool_size, max_overflow
-```
-
 ### 检查清单
 - [ ] 定时任务执行时间是否可能超过间隔（任务堆积）
 - [ ] 缓存是否有淘汰策略（LRU/TTL/最大容量）—— 详见 #22
@@ -274,21 +191,6 @@ Goroutine/线程:
 ---
 
 ## 12. 可观测性（日志）
-
-### 搜索关键词
-
-```
-日志框架:
-  Go: log., logger., slog., Infof, Errorf, Warnf, Debugf, printf, Println
-  Java: log., logger., Logger, log.info, log.error, log.warn, log.debug, SLF4J
-  Python: logging., logger., log., print(
-  Rust: info!, error!, warn!, debug!, tracing::, log::
-  TypeScript: console., logger., winston, pino, bunyan
-
-错误无日志: if err / catch ( / except / Err( → return/throw/raise 但无 log/logger
-
-关键业务: pay, charge, deduct, refund, transfer, create.*order, update.*status, delete.*account
-```
 
 ### 检查清单
 - [ ] 错误路径是否有日志

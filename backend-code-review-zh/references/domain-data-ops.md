@@ -9,20 +9,6 @@
 
 ## 22. 缓存一致性
 
-### 搜索关键词
-
-```
-缓存操作:
-  Go: cache., Cache., redis.Get, redis.Set, redis.Del, ristretto, bigcache, freecache
-  Java: @Cacheable, @CacheEvict, @CachePut, CacheManager, RedisTemplate, Caffeine, Ehcache
-  Python: cache, @lru_cache, @cached, redis.get, redis.set, redis.delete
-  TypeScript: cache., .get(, .set(, .del(, redis., ioredis
-
-写操作（缓存更新时机）:
-  Go: func.*Update, func.*Save, func.*Delete
-  Java/Python/TS: update, save, delete 相关方法
-```
-
 ### 检查清单
 - [ ] 缓存更新策略是否明确（Cache Aside / Write Through / Write Behind）
 - [ ] 缓存是否有 TTL（过期时间）
@@ -57,26 +43,6 @@
 ---
 
 ## 23. 监控与优雅上下线
-
-### 搜索关键词
-
-```
-指标监控:
-  Go: prometheus, promhttp, Counter, Gauge, Histogram, Summary
-  Java: MeterRegistry, @Timed, @Counted, micrometer
-  Python: prometheus_client, Counter, Gauge, Histogram, Summary
-  Rust: prometheus, metrics
-  TypeScript: prom-client, prometheus
-
-健康检查: health, Health, healthz, readyz, livez, /health, readiness, liveness
-
-优雅停机:
-  Go: signal.Notify, os.Signal, SIGTERM, SIGINT, syscall.SIGTERM, Shutdown
-  Java: @PreDestroy, DisposableBean, ShutdownHook, GracefulShutdown
-  Python: signal.signal, SIGTERM, shutdown, lifespan
-  Rust: tokio::signal, ctrl_c, tokio::select
-  TypeScript: process.on.*SIGTERM, process.on.*SIGINT, graceful, shutdown
-```
 
 ### 检查清单
 
@@ -115,24 +81,6 @@
 ---
 
 ## 24. 链路追踪
-
-### 搜索关键词
-
-```
-Tracing 框架:
-  Go: otel, opentelemetry
-  Java: opentelemetry, brave, sleuth, TraceId, SpanId, @NewSpan
-  Python: opentelemetry, jaeger, zipkin, tracer
-  Rust: opentelemetry, tracing::
-  TypeScript: opentelemetry
-
-Context 传递:
-  Go: context.Context
-  Java: RequestContextHolder, MDC, ThreadLocal
-  Python: contextvars, ContextVar
-
-traceID 变量: traceID, TraceID, trace_id, span_id, SpanId, requestID, RequestID, correlationID
-```
 
 ### 检查清单
 - [ ] 是否集成了 tracing 框架（OpenTelemetry / Jaeger 等）

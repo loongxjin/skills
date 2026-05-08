@@ -12,14 +12,6 @@
 
 ## 16. 幂等设计
 
-### 搜索关键词
-
-```
-写操作（需关注幂等）: Create, Insert, Update, Delete, Pay, Charge, Deduct, Send, Publish
-幂等键: idempoten, request_id, reqID, dedup, idempotency
-重试场景: retry, callback, webhook, reconcil
-```
-
 ### 检查清单
 - [ ] 支付/扣款/扣库存接口是否幂等
 - [ ] 消息发送是否幂等（消息重复消费场景）
@@ -50,27 +42,6 @@
 
 ## 17. 限流、熔断、降级
 
-### 搜索关键词
-
-```
-限流: rate.Limit, ratelimit, throttl, RateLimit, limiter, TokenBucket
-  Go: golang.org/x/time/rate
-  Java: @RateLimiter, Semaphore, Bucket4j, Resilience4j
-  Python: ratelimit, throttle, slowapi, django-ratelimit
-
-超时: Timeout, timeout, context.WithTimeout, context.WithDeadline, @Timeout
-  Rust: tokio::time::timeout
-
-熔断: circuit, breaker, CircuitBreaker, hystrix, resilience, Resilience4j, sentinel
-
-外部调用（需熔断保护）:
-  Go: http.Client, grpc.Dial, redis.NewClient, .Call(
-  Java: RestTemplate, WebClient, FeignClient, JedisCluster, RedisTemplate
-  Python: requests., aiohttp., httpx., redis.
-  Rust: reqwest::, hyper::, tonic::
-  TypeScript: axios, fetch(, prisma., knex
-```
-
 ### 检查清单
 - [ ] 对外暴露的接口是否有限流保护
 - [ ] 外部调用是否有超时控制
@@ -99,16 +70,6 @@
 
 ## 18. 重试策略
 
-### 搜索关键词
-
-```
-重试: retry, Retry, backoff, Backoff, attempt, maxAttempt, maxRetries
-  Go: github.com/cenkalti/backoff, github.com/sethvargo/go-retry
-  Java: @Retryable, RetryTemplate, spring-retry, Resilience4j
-  Python: tenacity, @retry, retrying, backoff
-无限重试风险: while True, for {
-```
-
 ### 检查清单
 - [ ] 重试前是否区分可重试错误和不可重试错误
 - [ ] 是否有指数退避策略
@@ -134,23 +95,6 @@
 ---
 
 ## 19. 资源释放与清理
-
-### 搜索关键词
-
-```
-资源清理:
-  Go: defer.*Close, defer.*Unlock, defer.*Cancel, os.Open, sql.Open, net.Dial
-  Java: try(, finally, .close(), .shutdown()
-  Python: with open, with.*as, __enter__, __exit__, contextmanager
-  Rust: impl Drop, drop(
-  TypeScript: .dispose(), .close(), .destroy(), finally
-
-并发原语（退出机制见 #8）:
-  Go: go func
-  Java: new Thread, @Async, CompletableFuture
-  Python: threading.Thread, asyncio.create_task
-  Rust: std::thread::spawn, tokio::spawn
-```
 
 ### 检查清单
 - [ ] 数据库连接是否在 defer/finally/with 中关闭
@@ -180,20 +124,6 @@
 
 ## 20. 输入校验
 
-### 搜索关键词
-
-```
-参数入口:
-  Go: ShouldBind, ShouldBindJSON, c.Query, c.Param, c.PostForm
-  Java: @RequestBody, @PathVariable, @RequestParam, @Valid, @Validated
-  Python: request.json, request.args, request.form, request.data
-  TypeScript: @Body, @Param, @Query, req.body, req.params, req.query
-
-SQL注入: fmt.Sprintf.*SELECT/INSERT/WHERE, String.format.*SELECT, f".*SELECT/INSERT/WHERE
-
-校验: validate, required, @NotNull, @NotBlank, @Size, @Min, @Max, validator
-```
-
 ### 检查清单
 - [ ] 所有外部输入是否经过校验
 - [ ] 参数校验是否在最外层完成
@@ -221,19 +151,6 @@ SQL注入: fmt.Sprintf.*SELECT/INSERT/WHERE, String.format.*SELECT, f".*SELECT/I
 ---
 
 ## 21. 最小权限
-
-### 搜索关键词
-
-```
-数据库高权限账号: root@, admin@, sysdba, sa@, superuser, postgres://
-
-鉴权:
-  Go: middleware + auth/jwt/token/permission/rbac
-  Java: @PreAuthorize, @Secured, @RolesAllowed, SecurityConfig
-  Python: @login_required, @permission_required, is_authenticated, permission_classes
-
-危险操作: delete.*all, drop, truncate, DELETE FROM, DROP TABLE, TRUNCATE
-```
 
 ### 检查清单
 - [ ] 数据库连接是否使用最小权限账号

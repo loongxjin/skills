@@ -12,11 +12,6 @@
 
 ## 1. Naming Conventions
 
-### Search Patterns
-
-Search keywords: tmp, temp, ret, data, info, result, obj, val, buf, num
-Applicable files: *.go, *.java, *.py, *.rs, *.ts, *.tsx
-
 ### Checklist
 - [ ] Do variable names express business meaning (`orderCount` instead of `cnt`)
 - [ ] Are function names verb phrases (`GetUserByID` / `getUserById` / `get_user_by_id`)
@@ -45,12 +40,6 @@ For each vague name (e.g., `data`, `result`, `info`), ask:
 
 ## 2. Single Function Responsibility
 
-### Search Patterns
-
-Language-specific function definitions: Go `func`, Java `public/private/protected`, Python `def`, Rust `fn`, TypeScript `function`/`=>`/`async`
-Multi-responsibility signal: function name contains `and`/`or` (e.g., `CreateAndSend`, `parse_or_default`)
-Applicable files: *.go, *.java, *.py, *.rs, *.ts, *.tsx
-
 ### Checklist
 - [ ] Does function exceed 50 lines (alert if so)
 - [ ] Does function name imply multiple actions (`CreateAndSendEmail` / `create_and_send_email`)
@@ -77,12 +66,6 @@ For each overly long function, ask:
 
 ## 3. Parameter Minimization
 
-### Search Patterns
-
-Multi-parameter signal: 4 or more parameters in function signature (regex match `..., ..., ..., ...`)
-Bool parameter: `bool` (Go/Python), `boolean`/`Boolean` (Java) appearing in parameter list
-Applicable files: *.go, *.java, *.py, *.rs, *.ts
-
 ### Checklist
 - [ ] Are there more than 3 parameters
 - [ ] Are there bool parameters controlling if-else branches (should be split into two functions)
@@ -105,12 +88,6 @@ Applicable files: *.go, *.java, *.py, *.rs, *.ts
 ---
 
 ## 4. Control Flow Flattening
-
-### Search Patterns
-
-Deep nesting: 3 or more indentation levels (tab or 8+ spaces)
-Else branch: `} else {` (Go/Java), `else:` (Python)
-Applicable files: *.go, *.java, *.py, *.rs, *.ts, *.tsx
 
 ### Checklist
 - [ ] Is there if-else nesting deeper than 2 levels
@@ -183,12 +160,6 @@ For each deep nesting, ask:
 
 ## 5. Eliminate Magic Values
 
-### Search Patterns
-
-Hard-coded numbers: bare numbers other than 0/1/-1 in conditions or assignments
-Hard-coded strings: `"..."` assignment without `final`/`static final`/enum modifier
-Applicable files: *.go, *.java, *.py, *.rs, *.ts
-
 ### Checklist
 - [ ] Do numeric constants have names (`maxRetryCount` instead of `3`)
 - [ ] Are states/types defined with enum/constant groups
@@ -217,15 +188,6 @@ For each magic value, ask:
 ## 6. Code Reuse & Deduplication
 
 > **Core Focus**: Eliminate copy-paste style duplicate code, extract general logic and patterns, reduce maintenance cost (one modification affects multiple places).
-
-### Search Patterns
-
-Duplicate error handling: `if err != nil` (Go), `catch (` (Java), `except ` (Python) appearing frequently in the same file
-Duplicate validation logic: required, @NotNull, @NotBlank, validate, etc. keywords
-Duplicate CRUD templates: Create/Update/Delete function signatures are highly similar
-Duplicate utility functions: Is/Has/Check/Parse/Format prefixed functions with same implementation in multiple places
-Duplicate config constants: const, static final, MAX_, MIN_, DEFAULT_ defined in multiple places
-Applicable files: *.go, *.java, *.py, *.rs, *.ts
 
 ### Checklist
 

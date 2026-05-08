@@ -12,14 +12,6 @@
 
 ## 16. Idempotency Design
 
-### Search Keywords
-
-```
-Write operations (need idempotency attention): Create, Insert, Update, Delete, Pay, Charge, Deduct, Send, Publish
-Idempotency keys: idempoten, request_id, reqID, dedup, idempotency
-Retry scenarios: retry, callback, webhook, reconcil
-```
-
 ### Checklist
 - [ ] Are payment/deduction/stock deduction interfaces idempotent
 - [ ] Is message sending idempotent (message duplicate consumption scenario)
@@ -50,27 +42,6 @@ Retry scenarios: retry, callback, webhook, reconcil
 
 ## 17. Rate Limiting, Circuit Breaker, Degradation
 
-### Search Keywords
-
-```
-Rate limiting: rate.Limit, ratelimit, throttl, RateLimit, limiter, TokenBucket
-  Go: golang.org/x/time/rate
-  Java: @RateLimiter, Semaphore, Bucket4j, Resilience4j
-  Python: ratelimit, throttle, slowapi, django-ratelimit
-
-Timeout: Timeout, timeout, context.WithTimeout, context.WithDeadline, @Timeout
-  Rust: tokio::time::timeout
-
-Circuit breaker: circuit, breaker, CircuitBreaker, hystrix, resilience, Resilience4j, sentinel
-
-External calls (need circuit breaker protection):
-  Go: http.Client, grpc.Dial, redis.NewClient, .Call(
-  Java: RestTemplate, WebClient, FeignClient, JedisCluster, RedisTemplate
-  Python: requests., aiohttp., httpx., redis.
-  Rust: reqwest::, hyper::, tonic::
-  TypeScript: axios, fetch(, prisma., knex
-```
-
 ### Checklist
 - [ ] Do exposed interfaces have rate limiting protection
 - [ ] Do external calls have timeout control
@@ -99,16 +70,6 @@ External calls (need circuit breaker protection):
 
 ## 18. Retry Strategy
 
-### Search Keywords
-
-```
-Retry: retry, Retry, backoff, Backoff, attempt, maxAttempt, maxRetries
-  Go: github.com/cenkalti/backoff, github.com/sethvargo/go-retry
-  Java: @Retryable, RetryTemplate, spring-retry, Resilience4j
-  Python: tenacity, @retry, retrying, backoff
-Infinite retry risk: while True, for {
-```
-
 ### Checklist
 - [ ] Before retry, are retriable errors distinguished from non-retriable errors
 - [ ] Is there exponential backoff strategy
@@ -134,23 +95,6 @@ Infinite retry risk: while True, for {
 ---
 
 ## 19. Resource Release & Cleanup
-
-### Search Keywords
-
-```
-Resource cleanup:
-  Go: defer.*Close, defer.*Unlock, defer.*Cancel, os.Open, sql.Open, net.Dial
-  Java: try(, finally, .close(), .shutdown()
-  Python: with open, with.*as, __enter__, __exit__, contextmanager
-  Rust: impl Drop, drop(
-  TypeScript: .dispose(), .close(), .destroy(), finally
-
-Concurrency primitives (exit mechanism see #8):
-  Go: go func
-  Java: new Thread, @Async, CompletableFuture
-  Python: threading.Thread, asyncio.create_task
-  Rust: std::thread::spawn, tokio::spawn
-```
 
 ### Checklist
 - [ ] Are database connections closed in defer/finally/with
@@ -180,20 +124,6 @@ Concurrency primitives (exit mechanism see #8):
 
 ## 20. Input Validation
 
-### Search Keywords
-
-```
-Parameter entry points:
-  Go: ShouldBind, ShouldBindJSON, c.Query, c.Param, c.PostForm
-  Java: @RequestBody, @PathVariable, @RequestParam, @Valid, @Validated
-  Python: request.json, request.args, request.form, request.data
-  TypeScript: @Body, @Param, @Query, req.body, req.params, req.query
-
-SQL injection: fmt.Sprintf.*SELECT/INSERT/WHERE, String.format.*SELECT, f".*SELECT/INSERT/WHERE
-
-Validation: validate, required, @NotNull, @NotBlank, @Size, @Min, @Max, validator
-```
-
 ### Checklist
 - [ ] Is all external input validated
 - [ ] Is parameter validation completed at the outermost layer
@@ -221,19 +151,6 @@ Validation: validate, required, @NotNull, @NotBlank, @Size, @Min, @Max, validato
 ---
 
 ## 21. Least Privilege
-
-### Search Keywords
-
-```
-Database high-privilege accounts: root@, admin@, sysdba, sa@, superuser, postgres://
-
-Authentication:
-  Go: middleware + auth/jwt/token/permission/rbac
-  Java: @PreAuthorize, @Secured, @RolesAllowed, SecurityConfig
-  Python: @login_required, @permission_required, is_authenticated, permission_classes
-
-Dangerous operations: delete.*all, drop, truncate, DELETE FROM, DROP TABLE, TRUNCATE
-```
 
 ### Checklist
 - [ ] Does database connection use least-privilege account
