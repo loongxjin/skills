@@ -10,6 +10,7 @@ A personal collection of Agent Skills for Claude Code, Cursor, Kimi Code CLI, Ge
 |-------|-------------|
 | [backend-code-review](./backend-code-review/) | Backend code review based on a 9-dimension thinking framework, covering code quality, architecture, database, concurrency, reliability, performance, security, observability, and engineering practices |
 | [backend-code-review-zh](./backend-code-review-zh/) | Chinese version of backend code review skill — systematically reviews backend code quality across 6 domains and 29 dimensions |
+| [atomic-commit](./atomic-commit/) | Enforce atomic commit workflow — break coding tasks into small steps, commit after each logical change with Conventional Commits |
 
 
 > Continuously updated. More skills coming soon.
@@ -31,14 +32,17 @@ npx skills add loongxjin/skills -y
 # Install a specific skill
 npx skills add loongxjin/skills --skill backend-code-review -y
 npx skills add loongxjin/skills --skill backend-code-review-zh -y
+npx skills add loongxjin/skills --skill atomic-commit -y
 
 # Install globally
 npx skills add loongxjin/skills --skill backend-code-review -y -g
 npx skills add loongxjin/skills --skill backend-code-review-zh -y -g
+npx skills add loongxjin/skills --skill atomic-commit -y -g
 
 # Install to specific agents
 npx skills add loongxjin/skills --skill backend-code-review -a claude-code -a cursor
 npx skills add loongxjin/skills --skill backend-code-review-zh -a claude-code -a cursor
+npx skills add loongxjin/skills --skill atomic-commit -a claude-code -a cursor
 ```
 
 ### Option 2: Manual Installation
