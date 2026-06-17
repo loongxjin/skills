@@ -55,8 +55,9 @@ When the user gives you a coding task, **do NOT implement everything then commit
 1. **Plan** — Break the task into small, logical steps.
 2. **Execute one step** — Write the minimal code for this step only.
 3. **Test** — Verify the step works (run tests, build, or manual check).
-4. **Commit** — Stage ONLY files changed in this step, commit immediately.
-5. **Next step** — Repeat from step 2.
+4. **Format** — Run the project's formatter/linter on changed files before committing.
+5. **Commit** — Stage ONLY files changed in this step, commit immediately.
+6. **Next step** — Repeat from step 2.
 
 ## Commit Format
 
