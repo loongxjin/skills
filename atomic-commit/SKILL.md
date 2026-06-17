@@ -45,8 +45,8 @@ Before writing any code, evaluate whether the task warrants a dedicated branch:
    ```bash
    git checkout main          # or the source branch
    git merge feature/my-feature
-   git branch -d feature/my-feature
    ```
+   **Keep the working branch** — do NOT delete it after merging. Branches serve as a record of completed work.
 
 ## How to Work
 
