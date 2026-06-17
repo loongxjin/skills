@@ -8,6 +8,8 @@ A personal collection of Agent Skills for Claude Code, Cursor, Kimi Code CLI, Ge
 
 | Skill | Description |
 |-------|-------------|
+| [business-driven-refactor](./business-driven-refactor/) | Business-first refactoring — understand business processes first, then realign code to faithfully express business intent. Untangle patched-up logic, identify ghost code, and restore clarity |
+| [business-driven-refactor-zh](./business-driven-refactor-zh/) | Chinese version of business-driven-refactor
 | [backend-code-review](./backend-code-review/) | Backend code review based on a 9-dimension thinking framework, covering code quality, architecture, database, concurrency, reliability, performance, security, observability, and engineering practices |
 | [backend-code-review-zh](./backend-code-review-zh/) | Chinese version of backend code review skill — systematically reviews backend code quality across 6 domains and 29 dimensions |
 | [atomic-commit](./atomic-commit/) | Enforce atomic commit workflow — break coding tasks into small steps, commit after each logical change with Conventional Commits |
@@ -30,16 +32,22 @@ A personal collection of Agent Skills for Claude Code, Cursor, Kimi Code CLI, Ge
 npx skills add loongxjin/skills -y
 
 # Install a specific skill
+npx skills add loongxjin/skills --skill business-driven-refactor -y
+npx skills add loongxjin/skills --skill business-driven-refactor-zh -y
 npx skills add loongxjin/skills --skill backend-code-review -y
 npx skills add loongxjin/skills --skill backend-code-review-zh -y
 npx skills add loongxjin/skills --skill atomic-commit -y
 
 # Install globally
+npx skills add loongxjin/skills --skill business-driven-refactor -y -g
+npx skills add loongxjin/skills --skill business-driven-refactor-zh -y -g
 npx skills add loongxjin/skills --skill backend-code-review -y -g
 npx skills add loongxjin/skills --skill backend-code-review-zh -y -g
 npx skills add loongxjin/skills --skill atomic-commit -y -g
 
 # Install to specific agents
+npx skills add loongxjin/skills --skill business-driven-refactor -a claude-code -a cursor
+npx skills add loongxjin/skills --skill business-driven-refactor-zh -a claude-code -a cursor
 npx skills add loongxjin/skills --skill backend-code-review -a claude-code -a cursor
 npx skills add loongxjin/skills --skill backend-code-review-zh -a claude-code -a cursor
 npx skills add loongxjin/skills --skill atomic-commit -a claude-code -a cursor
