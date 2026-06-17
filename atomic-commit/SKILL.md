@@ -11,6 +11,43 @@ description: >
 
 **Core principle:** Break all work into small atomic steps. Commit after each step. Never accumulate uncommitted changes.
 
+## Branch Strategy
+
+Before writing any code, evaluate whether the task warrants a dedicated branch:
+
+**When to create a new branch:**
+
+| Scenario | Branch prefix | Example |
+|---|---|---|
+| New feature or enhancement | `feature/` | `feature/user-auth`, `feature/add-export` |
+| Urgent bug fix for production | `hotfix/` | `hotfix/login-crash`, `hotfix/payment-error` |
+| Regular bug fix (non-urgent) | `fix/` | `fix/typo-readme`, `fix/email-validation` |
+| Code refactoring | `refactor/` | `refactor/extract-service`, `refactor/simplify-db` |
+| Experimental or spike work | `experiment/` | `experiment/new-algorithm` |
+
+**When NOT to branch — work directly on current branch:**
+
+- Trivial changes (typos, formatting, minor doc updates)
+- Changes that are a direct continuation of the current branch's purpose
+- The task is already on a dedicated feature/fix branch
+
+**Workflow:**
+
+1. **Evaluate** — Before starting, ask: "Is this a standalone piece of work with clear boundaries?"
+2. **Branch** — If yes, create and switch to a new branch:
+   ```bash
+   git checkout -b feature/my-feature
+   # or
+   git checkout -b hotfix/critical-bug
+   ```
+3. **Work** — Follow the atomic commit steps below on the new branch.
+4. **Merge back** — Once all steps are complete and verified, merge back to the source branch:
+   ```bash
+   git checkout main          # or the source branch
+   git merge feature/my-feature
+   git branch -d feature/my-feature
+   ```
+
 ## How to Work
 
 When the user gives you a coding task, **do NOT implement everything then commit once at the end.** Instead:
