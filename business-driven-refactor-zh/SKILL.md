@@ -1,5 +1,5 @@
 ---
-name: business-driven-refactor
+name: business-driven-refactor-zh
 description: Business-first refactoring that untangles patched-up business logic. Instead of starting from code structure (duplication, shallow modules), this skill starts from business processes — understanding what the product actually does, then checking whether the code faithfully and clearly expresses that intent. Use when code has been patched many times, business logic is scattered across handlers, the "why" behind the code is unclear, or you need to realign implementation with business reality. Use when the user mentions "this works but it's a mess", "业务逻辑很乱", "代码被补丁糊乱了", "搞不清楚这段代码到底在做什么业务", or any situation where code structure looks fine but business meaning is lost.
 ---
 
