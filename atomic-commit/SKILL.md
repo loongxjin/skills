@@ -41,11 +41,6 @@ Before writing any code, evaluate whether the task warrants a dedicated branch:
    git checkout -b hotfix/critical-bug
    ```
 3. **Work** — Follow the atomic commit steps below on the new branch.
-4. **Merge back** — Once all steps are complete and verified, merge back to the source branch with `--no-ff` to preserve the working branch's history:
-   ```bash
-   git checkout main          # or the source branch
-   git merge --no-ff feature/my-feature
-   ```
 
 ## How to Work
 
