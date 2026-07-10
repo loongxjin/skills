@@ -13,7 +13,7 @@ A personal collection of Agent Skills for Claude Code, Cursor, Kimi Code CLI, Ge
 | [backend-code-review](./backend-code-review/) | Backend code review based on a 9-dimension thinking framework, covering code quality, architecture, database, concurrency, reliability, performance, security, observability, and engineering practices |
 | [backend-code-review-zh](./backend-code-review-zh/) | Chinese version of backend code review skill — systematically reviews backend code quality across 6 domains and 29 dimensions |
 | [atomic-commit](./atomic-commit/) | Enforce atomic commit workflow — break coding tasks into small steps, commit after each logical change with Conventional Commits |
-
+| [foresight](./foresight/) | Structured prediction reasoning engine — multi-chain causal inference with counter-consensus analysis. Derive investment implications from events through second-order effects, trend deduction, and scenario analysis |
 
 > Continuously updated. More skills coming soon.
 
@@ -37,6 +37,7 @@ npx skills add loongxjin/skills --skill business-driven-refactor-zh -y
 npx skills add loongxjin/skills --skill backend-code-review -y
 npx skills add loongxjin/skills --skill backend-code-review-zh -y
 npx skills add loongxjin/skills --skill atomic-commit -y
+npx skills add loongxjin/skills --skill foresight -y
 
 # Install globally
 npx skills add loongxjin/skills --skill business-driven-refactor -y -g
@@ -44,6 +45,7 @@ npx skills add loongxjin/skills --skill business-driven-refactor-zh -y -g
 npx skills add loongxjin/skills --skill backend-code-review -y -g
 npx skills add loongxjin/skills --skill backend-code-review-zh -y -g
 npx skills add loongxjin/skills --skill atomic-commit -y -g
+npx skills add loongxjin/skills --skill foresight -y -g
 
 # Install to specific agents
 npx skills add loongxjin/skills --skill business-driven-refactor -a claude-code -a cursor
@@ -51,6 +53,7 @@ npx skills add loongxjin/skills --skill business-driven-refactor-zh -a claude-co
 npx skills add loongxjin/skills --skill backend-code-review -a claude-code -a cursor
 npx skills add loongxjin/skills --skill backend-code-review-zh -a claude-code -a cursor
 npx skills add loongxjin/skills --skill atomic-commit -a claude-code -a cursor
+npx skills add loongxjin/skills --skill foresight -a claude-code -a cursor
 ```
 
 ### Option 2: Manual Installation
