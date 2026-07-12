@@ -13,7 +13,6 @@
 | [backend-code-review-zh](./backend-code-review-zh/) | 基于九维思维框架的后端代码审查，涵盖代码质量、架构设计、数据库、并发处理、可靠性、性能、安全、可观测性及工程实践 |
 | [backend-code-review](./backend-code-review/) | 英文版本的后端代码审查技能——从6大领域29个维度系统深入审查后端代码质量 |
 | [atomic-commit](./atomic-commit/) | 原子化提交工作流——将编码任务拆分为小步，每完成一个逻辑变更即提交，遵循 Conventional Commits 规范 |
-| [foresight](./foresight/) | 结构化预测推理引擎——多链因果推理 + 反共识分析。从事件出发，通过二阶效应、趋势推演、情景分析推导投资含义，发现 alpha |
 
 > 持续更新中，更多技能即将推出。
 
@@ -37,7 +36,6 @@ npx skills add loongxjin/skills --skill business-driven-refactor -y
 npx skills add loongxjin/skills --skill backend-code-review-zh -y
 npx skills add loongxjin/skills --skill backend-code-review -y
 npx skills add loongxjin/skills --skill atomic-commit -y
-npx skills add loongxjin/skills --skill foresight -y
 
 # 全局安装
 npx skills add loongxjin/skills --skill business-driven-refactor-zh -y -g
@@ -45,7 +43,6 @@ npx skills add loongxjin/skills --skill business-driven-refactor -y -g
 npx skills add loongxjin/skills --skill backend-code-review-zh -y -g
 npx skills add loongxjin/skills --skill backend-code-review -y -g
 npx skills add loongxjin/skills --skill atomic-commit -y -g
-npx skills add loongxjin/skills --skill foresight -y -g
 
 # 安装到指定 Agent
 npx skills add loongxjin/skills --skill business-driven-refactor-zh -a claude-code -a cursor
@@ -53,7 +50,6 @@ npx skills add loongxjin/skills --skill business-driven-refactor -a claude-code 
 npx skills add loongxjin/skills --skill backend-code-review-zh -a claude-code -a cursor
 npx skills add loongxjin/skills --skill backend-code-review -a claude-code -a cursor
 npx skills add loongxjin/skills --skill atomic-commit -a claude-code -a cursor
-npx skills add loongxjin/skills --skill foresight -a claude-code -a cursor
 ```
 
 ### 方式二：手动安装
