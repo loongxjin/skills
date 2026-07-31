@@ -13,6 +13,9 @@
 | [backend-code-review-zh](./backend-code-review-zh/) | 基于九维思维框架的后端代码审查，涵盖代码质量、架构设计、数据库、并发处理、可靠性、性能、安全、可观测性及工程实践 |
 | [backend-code-review](./backend-code-review/) | 英文版本的后端代码审查技能——从6大领域29个维度系统深入审查后端代码质量 |
 | [atomic-commit](./atomic-commit/) | 原子化提交工作流——将编码任务拆分为小步，每完成一个逻辑变更即提交，遵循 Conventional Commits 规范 |
+| [alpha-finder](./alpha-finder/) | 基于信息差的 alpha 发现——把事件、新闻转成中文投资分析报告，覆盖 A股/港股/美股/加密货币/商品/FX/债 |
+| [alpha-validator](./alpha-validator/) | 验证历史 alpha 报告的准确性——逐项检查证伪条件，统计准确率，复盘错误模式。消费 alpha-finder 的报告格式 |
+| [blindspot](./blindspot/) | 探测"不知道自己不知道"的理解盲区——费曼检验和误解靶向提问两种工具 |
 
 > 持续更新中，更多技能即将推出。
 
@@ -32,25 +35,15 @@ npx skills add loongxjin/skills -y
 
 # 安装指定技能
 npx skills add loongxjin/skills --skill business-driven-refactor-zh -y
-npx skills add loongxjin/skills --skill business-driven-refactor -y
-npx skills add loongxjin/skills --skill backend-code-review-zh -y
-npx skills add loongxjin/skills --skill backend-code-review -y
-npx skills add loongxjin/skills --skill atomic-commit -y
 
 # 全局安装
 npx skills add loongxjin/skills --skill business-driven-refactor-zh -y -g
-npx skills add loongxjin/skills --skill business-driven-refactor -y -g
-npx skills add loongxjin/skills --skill backend-code-review-zh -y -g
-npx skills add loongxjin/skills --skill backend-code-review -y -g
-npx skills add loongxjin/skills --skill atomic-commit -y -g
 
 # 安装到指定 Agent
 npx skills add loongxjin/skills --skill business-driven-refactor-zh -a claude-code -a cursor
-npx skills add loongxjin/skills --skill business-driven-refactor -a claude-code -a cursor
-npx skills add loongxjin/skills --skill backend-code-review-zh -a claude-code -a cursor
-npx skills add loongxjin/skills --skill backend-code-review -a claude-code -a cursor
-npx skills add loongxjin/skills --skill atomic-commit -a claude-code -a cursor
 ```
+
+> 可用技能名：`business-driven-refactor`、`business-driven-refactor-zh`、`backend-code-review`、`backend-code-review-zh`、`atomic-commit`、`alpha-finder`、`alpha-validator`、`blindspot`。
 
 ### 方式二：手动安装
 
