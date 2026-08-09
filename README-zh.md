@@ -15,6 +15,7 @@
 | [atomic-commit](./atomic-commit/) | 原子化提交工作流——将编码任务拆分为小步，每完成一个逻辑变更即提交，遵循 Conventional Commits 规范 |
 | [alpha-finder](./alpha-finder/) | 基于信息差的 alpha 发现——把事件、新闻转成中文投资分析报告，覆盖 A股/港股/美股/加密货币/商品/FX/债 |
 | [alpha-validator](./alpha-validator/) | 验证历史 alpha 报告的准确性——逐项检查证伪条件，统计准确率，复盘错误模式。消费 alpha-finder 的报告格式 |
+| [trade-planner](./trade-planner/) | 期望值与仓位规划——对 alpha 方向的具体标的做 EV 计算、仓位测算并产出交易计划表。消费 alpha-finder 的标的与预期差 |
 | [blindspot](./blindspot/) | 探测"不知道自己不知道"的理解盲区——费曼检验和误解靶向提问两种工具 |
 
 > 持续更新中，更多技能即将推出。
@@ -43,7 +44,7 @@ npx skills add loongxjin/skills --skill business-driven-refactor-zh -y -g
 npx skills add loongxjin/skills --skill business-driven-refactor-zh -a claude-code -a cursor
 ```
 
-> 可用技能名：`business-driven-refactor`、`business-driven-refactor-zh`、`backend-code-review`、`backend-code-review-zh`、`atomic-commit`、`alpha-finder`、`alpha-validator`、`blindspot`。
+> 可用技能名：`business-driven-refactor`、`business-driven-refactor-zh`、`backend-code-review`、`backend-code-review-zh`、`atomic-commit`、`alpha-finder`、`alpha-validator`、`trade-planner`、`blindspot`。
 
 ### 方式二：手动安装
 

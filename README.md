@@ -15,6 +15,7 @@ A personal collection of Agent Skills for Claude Code, Cursor, Kimi Code CLI, Ge
 | [atomic-commit](./atomic-commit/) | Enforce atomic commit workflow — break coding tasks into small steps, commit after each logical change with Conventional Commits |
 | [alpha-finder](./alpha-finder/) | Information-asymmetry alpha discovery — turn events/news into Chinese investment analysis reports across A-shares/HK/US equities, crypto, commodities, FX, and bonds |
 | [alpha-validator](./alpha-validator/) | Verify the accuracy of historical alpha reports — check falsification conditions, tally accuracy, and review error patterns. Consumes alpha-finder's report format |
+| [trade-planner](./trade-planner/) | Expected value and position sizing for alpha targets — compute EV, size positions with a survival-first framework, and draft an executable trading plan. Consumes alpha-finder's report format |
 | [blindspot](./blindspot/) | Detect "unknown unknowns" understanding gaps via the Feynman test and targeted misconception probing |
 
 > Continuously updated. More skills coming soon.
@@ -43,7 +44,7 @@ npx skills add loongxjin/skills --skill business-driven-refactor -y -g
 npx skills add loongxjin/skills --skill business-driven-refactor -a claude-code -a cursor
 ```
 
-> Available skill names: `business-driven-refactor`, `business-driven-refactor-zh`, `backend-code-review`, `backend-code-review-zh`, `atomic-commit`, `alpha-finder`, `alpha-validator`, `blindspot`.
+> Available skill names: `business-driven-refactor`, `business-driven-refactor-zh`, `backend-code-review`, `backend-code-review-zh`, `atomic-commit`, `alpha-finder`, `alpha-validator`, `trade-planner`, `blindspot`.
 
 ### Option 2: Manual Installation
 
